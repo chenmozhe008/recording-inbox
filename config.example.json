@@ -9,8 +9,6 @@
   "summary_api_base": "https://api.deepseek.com",
   "summary_model": "deepseek-chat",
 
-  "poll_interval_seconds": 60,
-  "min_file_age_seconds": 30,
   "minimum_transcription_duration_seconds": 2,
   "transcription_timeout_seconds": 14400,
   "supported_extensions": [".wav", ".mp3", ".m4a", ".aac", ".mp4", ".mov"],
@@ -19,8 +17,8 @@
     "lark_cli": "lark-cli",
     "ffmpeg": "ffmpeg",
     "ffprobe": "ffprobe",
-    "funasr_python": "",
+    "funasr_python": "asr-venv/bin/python3",
     "whisper_cpp": "",
-    "whisper_model": ""
+    "whisper_model": "models/ggml-small.bin"
   }
 }

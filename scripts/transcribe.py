@@ -39,9 +39,10 @@ def audio_duration_seconds(audio_path: Path, config: dict[str, Any]) -> float | 
 
 
 def funasr_python(config: dict[str, Any]) -> str | None:
-    """装了 funasr 的 python 解释器。没配则用 python3 试探。"""
+    """装了 funasr 的 python 解释器。没配则用 python3 试探。
+    支持相对路径（相对项目根目录），如 README 推荐的 asr-venv/bin/python3。"""
     configured = str(config.get("executables", {}).get("funasr_python", "")).strip()
-    candidate = configured or "python3"
+    candidate = str(resolve_path(configured)) if configured else "python3"
     try:
         run_command([candidate, "-c", "import funasr"], timeout=60)
         return candidate
@@ -74,9 +75,11 @@ def whisper_binary(config: dict[str, Any]) -> str:
 
 def run_whisper(task_dir: Path, audio_path: Path, config: dict[str, Any]) -> str:
     model_value = str(config.get("executables", {}).get("whisper_model", "")).strip()
-    model_path = Path(model_value).expanduser()
-    if not model_value or not model_path.is_file():
+    if not model_value:
         raise RuntimeError("未配置 executables.whisper_model（ggml 模型文件路径）")
+    model_path = resolve_path(model_value)  # 支持相对项目根目录的路径
+    if not model_path.is_file():
+        raise RuntimeError(f"whisper 模型文件不存在：{model_path}")
     ffmpeg = find_executable(config, "ffmpeg", "ffmpeg")
     binary = whisper_binary(config)
     work_dir = task_dir / ".work"
