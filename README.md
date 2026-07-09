@@ -38,7 +38,15 @@ iPhone 录音 ──分享──▶ 飞书云盘 inbox ──每分钟──▶ 
 - 飞书账号（个人版就行，不需要企业管理员）
 - （可选）[DeepSeek](https://platform.deepseek.com) API key，用来生成智能纪要；一小时录音的纪要成本约几分钱
 
-## 快速开始
+## ⚡ 最省事：让 AI 助手替你部署
+
+如果你在用 Claude Code、Codex 这类 AI 编程助手（本项目读者大概率在用），不用自己敲命令——新建一个空目录，对你的 AI 说：
+
+> 帮我部署 https://github.com/chenmozhe008/recording-inbox ，克隆后按仓库里的 AGENTS.md 一步步来，需要我做的事（扫码授权、提供文件夹链接）随时问我。
+
+仓库里的 [AGENTS.md](AGENTS.md) 就是给 AI 看的部署手册。你只需要在它要求时扫个码、发个文件夹链接。
+
+## 快速开始（手动路径）
 
 ```bash
 # 0. 克隆
