@@ -1,0 +1,19 @@
+# 密钥与个人配置（红线：永不入 git）
+.env
+config.json
+
+# 运行产物
+logs/
+output/
+data/
+state/
+tmp/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# macOS
+.DS_Store
