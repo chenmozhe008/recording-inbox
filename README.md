@@ -1,10 +1,15 @@
 **简体中文** | [English](README.en.md)
 
-# recording-inbox
+# recording-inbox — 录完就不用管的录音工作台
 
 ![macOS](https://img.shields.io/badge/platform-macOS-black) ![Python](https://img.shields.io/badge/python-3.10+-blue) ![License](https://img.shields.io/badge/license-MIT-green)
 
-iPhone 随手录音，Mac 自动转写成文字稿和智能纪要，进飞书文档。**转写全程在你自己的 Mac 上跑，免费、不限时长、录音不出自己的设备。**
+**iPhone 随手录音，两分钟后飞书里出现一份带待办的智能纪要。** 中间发生的一切——上传、转写、总结、发布——全自动，你什么都不用做。
+
+- 🆓 **不限量、零转写费**——转写在你自己的 Mac 上本地跑（FunASR），录多少都不花钱，告别妙记 300 分钟/月的额度焦虑
+- 🔒 **录音不出自己的设备**——只在你的 iPhone、你的飞书云盘、你的 Mac 之间流转，不经过任何第三方转写服务器
+- 📋 **不只是逐字稿**——自动生成「概要 / 要点 / 待办」结构化纪要，带说话人分离和时间戳
+- ⚡ **安装比你想的简单**——把一句话发给 Claude Code 之类的 AI 助手，它替你装完；手动装也就 10 分钟复制粘贴
 
 ```
 iPhone 录音 ──分享──▶ 飞书云盘 inbox ──每分钟──▶ Mac 拉取
