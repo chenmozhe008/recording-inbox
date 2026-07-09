@@ -1,3 +1,5 @@
+**简体中文** | [English](README.en.md)
+
 # recording-inbox
 
 iPhone 随手录音，Mac 自动转写成文字稿和智能纪要，进飞书文档。**转写全程在你自己的 Mac 上跑，免费、不限时长、录音不出自己的设备。**
@@ -125,6 +127,8 @@ A：行。`config.json` 里 `summary_api_base` / `summary_model` 是任何 OpenA
 A：作者的私人版本在这条链路之后还有一大截：纪要自动提取待办、飞书卡片确认、AI 自动执行任务、结果审过闭环、台账看板。那些和个人工作流耦合太深，不适合开源。这个仓库是其中「人人用得上」的部分。
 
 ## English
+
+> Full English version: [README.en.md](README.en.md)
 
 **recording-inbox** turns an iPhone + an always-on Mac into a hands-free meeting-minutes pipeline: record on iPhone → auto-upload to Feishu (Lark) Drive → the Mac picks it up, transcribes **locally** (FunASR / whisper.cpp — free, unlimited, private) → an LLM writes structured minutes → published as Markdown + Feishu docs.
 
