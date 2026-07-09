@@ -120,7 +120,12 @@ def log(message: str) -> None:
 def lark_json(config: dict[str, Any], args: list[str], *, cwd: Path | None = None, timeout: int = 600) -> dict[str, Any]:
     lark = find_executable(config, "lark_cli", "lark-cli")
     result = run_command([lark, *args], cwd=cwd, timeout=timeout)
-    return json.loads(result.stdout)
+    # lark-cli 部分命令会在 JSON 前打一行进度文案，跳过它从第一个 { 开始解析
+    stdout = result.stdout
+    start = stdout.find("{")
+    if start < 0:
+        raise RuntimeError(f"lark-cli 未返回 JSON：{stdout[:200]}")
+    return json.loads(stdout[start:])
 
 
 def list_folder(config: dict[str, Any], folder_token: str) -> list[dict[str, Any]]:
@@ -154,7 +159,7 @@ def create_folder(config: dict[str, Any], name: str, parent_token: str) -> str:
         "--folder-token", parent_token,
     ])
     data = payload.get("data", {})
-    token = data.get("token") or data.get("folder_token") or data.get("file_token")
+    token = data.get("folder_token") or data.get("token") or data.get("file_token")
     if not token:
         raise RuntimeError(f"创建文件夹失败：{payload}")
     return str(token)
@@ -165,6 +170,7 @@ def drive_move(config: dict[str, Any], file_token: str, folder_token: str) -> No
         "drive", "+move", "--as", "user",
         "--file-token", file_token,
         "--folder-token", folder_token,
+        "--type", "file",
     ])
 
 

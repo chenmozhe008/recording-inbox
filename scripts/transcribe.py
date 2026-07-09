@@ -149,6 +149,8 @@ def transcribe_task(task_dir: Path, config: dict[str, Any]) -> bool:
             update_status(
                 task_dir, "transcript_ready",
                 "逐字稿已生成。", transcription_backend=backend,
+                # 主后端失败落到兜底时，把失败原因留在 status 里方便排查
+                fallback_errors=errors or None,
             )
             return True
         except Exception as exc:

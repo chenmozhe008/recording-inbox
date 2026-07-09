@@ -12,7 +12,31 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from workflow_common import collapse_repeats, to_simplified
+# 本 worker 保持自包含（会被独立的 funasr venv python 调起，不能依赖项目内其他模块）
+try:
+    from zhconv import convert as _zh_convert  # type: ignore
+except Exception:  # zhconv 缺失时不做繁简转换，主流程不受影响
+    _zh_convert = None
+
+
+def collapse_repeats(text: str) -> str:
+    """折叠 ASR 复读幻觉：连续重复 3 次以上的同一片段收成正常说法。
+    多字词（如「简单简单简单简单」）收成 1 次；单字（如「嗯嗯嗯嗯」）保留自然叠词收成 2 次，
+    避免误伤「好好」「谢谢」「高高兴兴」这类正常语言。"""
+    if not text:
+        return text
+    text = re.sub(r"(.{2,8}?)\1{2,}", r"\1", text)   # 多字片段重复≥3 → 1
+    text = re.sub(r"(.)\1{2,}", r"\1\1", text)         # 单字重复≥3 → 2
+    return text
+
+
+def to_simplified(text: str) -> str:
+    if not text or _zh_convert is None:
+        return text
+    try:
+        return _zh_convert(text, "zh-cn")
+    except Exception:
+        return text
 
 # SenseVoice 原始输出带富文本标记，必须清洗成纯文本。注意这个版本的解码会把
 # 标记拆成带空格形式（如 “< | en | >”“< | S pee ch | >”），rich_transcription_postprocess
