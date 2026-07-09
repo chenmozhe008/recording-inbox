@@ -2,6 +2,8 @@
 
 # recording-inbox
 
+![macOS](https://img.shields.io/badge/platform-macOS-black) ![Python](https://img.shields.io/badge/python-3.10+-blue) ![License](https://img.shields.io/badge/license-MIT-green)
+
 iPhone 随手录音，Mac 自动转写成文字稿和智能纪要，进飞书文档。**转写全程在你自己的 Mac 上跑，免费、不限时长、录音不出自己的设备。**
 
 ```
@@ -14,39 +16,38 @@ iPhone 录音 ──分享──▶ 飞书云盘 inbox ──每分钟──▶ 
                                     本地 Markdown ＋ 飞书在线文档
 ```
 
-> 这是一篇公众号文章的配套项目（文章链接见仓库简介），是作者私人自动化系统的精简开源版。
-> 定位是「一个周末能跑通的教程项目」，**不承诺长期维护，issue 随缘**。
+## 🚀 安装（选一条路）
 
-## 为什么不直接用飞书妙记 / 讯飞 / Otter？
+**方式 A · 一句话交给 AI 助手（推荐）**
 
-- **额度**：妙记等云端转写按分钟收费或限额（妙记个人版约 300 分钟/月）；本地转写没有表；
-- **隐私**：录音文件只在你的 iPhone、你的飞书云盘、你的 Mac 之间流转，不经过第三方转写服务器；
-- **可改**：纪要的提示词就在 `scripts/minutes.py` 里，想让它按你的行业黑话总结，改两行就行。
+在用 Claude Code / Codex 这类 AI 编程助手的话，新建一个空目录，把下面这句话发给它，然后按它的提示扫个码、发个文件夹链接就装完了：
 
-**一句话判断适不适合你**——同时满足这三条再动手：
+```text
+帮我部署 https://github.com/chenmozhe008/recording-inbox
+克隆后按仓库里的 AGENTS.md 一步步来，需要我做的事随时问我。
+```
 
-1. 录音量大（每月超过妙记免费的 300 分钟，或者干脆不想算账）；
-2. 你和团队日常用飞书（纪要落进飞书文档才有意义）；
-3. 有一台可以常开机的 Mac。
+[AGENTS.md](AGENTS.md) 是专门写给 AI 看的部署手册，它知道每一步怎么做、哪些事必须找你。
 
-缺任何一条：老实用妙记/通义听悟更省心，这个项目不适合你。三条全中：它是目前唯一「录完不用管、不限量、进飞书」的免费方案。
+**方式 B · 手动安装**
 
-## 前置条件
+会用终端的话照着 [下面的手动安装](#手动安装) 复制粘贴，10 分钟。
 
-- 一台**常开机**的 Mac（Apple Silicon 体验最佳；合盖会停，接电源并在系统设置里开「防止自动进入睡眠」）
-- [Homebrew](https://brew.sh)（Mac 的软件包管理器，没装过的先装它，官网一行命令）
-- 飞书账号（个人版就行，不需要企业管理员）
-- （可选）[DeepSeek](https://platform.deepseek.com) API key，用来生成智能纪要；一小时录音的纪要成本约几分钱
+## 适不适合你？
 
-## ⚡ 最省事：让 AI 助手替你部署
+同时满足这三条再装：
 
-如果你在用 Claude Code、Codex 这类 AI 编程助手（本项目读者大概率在用），不用自己敲命令——新建一个空目录，对你的 AI 说：
+1. **录音量大**——每月超过飞书妙记免费的 300 分钟，或者不想算账；
+2. **日常用飞书**——纪要落进飞书文档才有意义；
+3. **有一台可以常开机的 Mac**。
 
-> 帮我部署 https://github.com/chenmozhe008/recording-inbox ，克隆后按仓库里的 AGENTS.md 一步步来，需要我做的事（扫码授权、提供文件夹链接）随时问我。
+缺任何一条：用妙记 / 通义听悟更省心。三条全中：这是目前唯一「录完不用管、不限量、进飞书」的免费方案。
 
-仓库里的 [AGENTS.md](AGENTS.md) 就是给 AI 看的部署手册。你只需要在它要求时扫个码、发个文件夹链接。
+相比云端转写服务，它多给你两样东西：**隐私**（录音只在你的 iPhone、飞书云盘、Mac 之间流转）和**可改**（纪要提示词就在 `scripts/minutes.py`，想按你的行业黑话总结，改两行就行）。
 
-## 快速开始（手动路径）
+## 手动安装
+
+前置：一台**常开机**的 Mac（Apple Silicon 最佳；接电源并开「防止自动进入睡眠」）、[Homebrew](https://brew.sh)、飞书账号（个人版即可）、可选的 [DeepSeek](https://platform.deepseek.com) API key（一小时录音的纪要约几分钱）。
 
 ```bash
 # 0. 克隆
@@ -60,9 +61,8 @@ npm install -g @larksuite/cli
 # 2. 转写模型（装在项目内独立 venv，不碰你的系统 Python；约 2GB，耐心等）
 python3 -m venv asr-venv
 ./asr-venv/bin/pip install funasr modelscope torch torchaudio
-# 首次转写时会自动下载模型（约 1GB，国内直连 modelscope，不用代理）
 
-# 3. 飞书授权 + 建 inbox 文件夹（详见 docs/setup-feishu-app.md）
+# 3. 飞书授权（扫码即可，不需要建应用）+ 建 inbox 文件夹拿 token（见 docs/setup-feishu-app.md）
 lark-cli auth login --domain drive,docs
 
 # 4. 配置
@@ -74,6 +74,7 @@ python3 scripts/setup_check.py
 
 # 6. 手动跑一轮试试：往 inbox 文件夹传一个音频，然后
 python3 scripts/run.py
+# 首次运行自动下载转写模型（约 1GB，国内直连，实测含下载全程约 2 分钟）
 
 # 7. 跑通后挂成每分钟自动运行（一条命令，自动替换成你的路径）
 sed "s|/path/to/recording-inbox|$(pwd)|g" launchd/com.example.recording-inbox.plist > ~/Library/LaunchAgents/com.example.recording-inbox.plist
@@ -93,7 +94,13 @@ curl -L -o models/ggml-small.bin https://hf-mirror.com/ggerganov/whisper.cpp/res
 `config.example.json` 里 `whisper_model` 默认就是 `models/ggml-small.bin`，下载完即生效。
 </details>
 
-iPhone 端怎么把录音送进 inbox（手动分享 / 快捷指令自动传）：见 `docs/upload-from-iphone.md`。
+## iPhone 端怎么把录音送进来
+
+三种方式按门槛从低到高，见 [docs/upload-from-iphone.md](docs/upload-from-iphone.md)：
+
+- **手动分享**（零配置）：语音备忘录录完 → 分享 → 飞书 → 存到 inbox 文件夹；
+- **快捷指令**（推荐日常）：录完分享给快捷指令，自动上传，全程不打开飞书；
+- 配套录音 App 暂未开源，本仓库链路不依赖它。
 
 ## 目录结构
 
@@ -112,7 +119,7 @@ data/                    运行时任务包（gitignore）
 output/minutes/          纪要 Markdown 产物（gitignore）
 ```
 
-## 处理状态
+## 处理状态与排错
 
 每条录音是 `data/tasks/` 下的一个目录，`status.json` 记录进度：
 
@@ -134,14 +141,6 @@ A：行。`config.json` 里 `summary_api_base` / `summary_model` 是任何 OpenA
 **Q：作者自己用的版本和这个有什么区别？**
 A：作者的私人版本在这条链路之后还有一大截：纪要自动提取待办、飞书卡片确认、AI 自动执行任务、结果审过闭环、台账看板。那些和个人工作流耦合太深，不适合开源。这个仓库是其中「人人用得上」的部分。
 
-## English
+---
 
-> Full English version: [README.en.md](README.en.md)
-
-**recording-inbox** turns an iPhone + an always-on Mac into a hands-free meeting-minutes pipeline: record on iPhone → auto-upload to Feishu (Lark) Drive → the Mac picks it up, transcribes **locally** (FunASR / whisper.cpp — free, unlimited, private) → an LLM writes structured minutes → published as Markdown + Feishu docs.
-
-Note: this project is **Feishu/Lark-centric by design** (that's where Chinese teams live). If you don't use Feishu, you'd have to replace the transport layer (`scripts/pull_inbox.py`) — at that point you may be happier with [Buzz](https://github.com/chidiwilliams/buzz) or [Vibe](https://github.com/thewh1teagle/vibe). Docs are Chinese-only; the code comments too. This is a tutorial companion project, maintained casually.
-
-## License
-
-MIT
+> 本项目是一篇公众号文章的配套仓库（文章链接见仓库简介），定位「一个周末能跑通的教程项目」，不承诺长期维护，issue 随缘。License: MIT
