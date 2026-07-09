@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    每 60 秒跑一轮主流程。安装方法（把下面两处 /path/to/recording-inbox 换成你的实际路径）：
+      cp launchd/com.example.recording-inbox.plist ~/Library/LaunchAgents/
+      launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.example.recording-inbox.plist
+    卸载：
+      launchctl bootout gui/$(id -u)/com.example.recording-inbox
+  -->
+  <key>Label</key>
+  <string>com.example.recording-inbox</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>/path/to/recording-inbox/scripts/run.py</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/path/to/recording-inbox</string>
+
+  <key>StartInterval</key>
+  <integer>60</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/path/to/recording-inbox/logs/run.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/path/to/recording-inbox/logs/run.err.log</string>
+
+  <!-- 让 launchd 环境里能找到 homebrew 装的 ffmpeg / lark-cli -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+</dict>
+</plist>

@@ -52,7 +52,7 @@ def main() -> int:
     lark_found = shutil.which(lark) or Path(lark).expanduser().is_file()
     all_ok &= check(
         "lark-cli 已安装", bool(lark_found),
-        "npm install -g @larksuiteoapi/lark-cli（见 docs/setup-feishu-app.md）",
+        "npm install -g @larksuite/cli（见 docs/setup-feishu-app.md）",
     )
     if lark_found:
         try:
@@ -61,7 +61,7 @@ def main() -> int:
             )
             all_ok &= check(
                 "lark-cli 已登录授权", result.returncode == 0,
-                "运行 lark-cli auth login 完成授权",
+                "运行 lark-cli auth login --domain drive,docs 完成授权",
             )
         except (subprocess.SubprocessError, OSError):
             all_ok &= check("lark-cli 可执行", False, "检查安装是否完整")

@@ -28,6 +28,4 @@ config.example.json   配置模板（读者拷成 config.json 填自己的）
 
 ## 关联
 
-- 主系统（私有）：`~/Coding/Coding Project/feishu-minutes-automation/`
-- iOS App（进阶层，源码另库/子目录，读者自签）：`~/Coding/Coding Project/RecordingInboxApp/`
-- 公众号文章草稿：飞书 wiki （私有位置见 CLAUDE.local.md）
+私有上下文（主系统路径、文章草稿位置等）见 `CLAUDE.local.md`（gitignore，不随仓库发布）。
