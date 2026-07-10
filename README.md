@@ -86,6 +86,10 @@ python scripts/setup_check.py
 
 ## 结果长什么样？
 
+![脱敏的智能纪要示例](docs/assets/sample-minutes-preview.jpg)
+
+截图来自仓库内的 [脱敏示例纪要](examples/sample-minutes.md)，展示标题、摘要、主题大纲和待办的实际排版。
+
 生成的飞书文档包含：
 
 ```text

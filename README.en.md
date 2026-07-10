@@ -50,6 +50,8 @@ python scripts/setup_check.py
 
 ## Output
 
+![Sanitized AI notes preview](docs/assets/sample-minutes-preview.jpg)
+
 Notes include an AI overview, outline, todos, chapters, decisions, quotes, and transcript. Built-in templates cover meetings, interviews, courses, and project discussions. See the [sample notes](examples/sample-minutes.md).
 
 Single-speaker recordings do not show meaningless `Speaker 1` labels. Multi-speaker recordings keep numbered labels when needed.
