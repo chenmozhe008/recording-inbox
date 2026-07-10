@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安装和故障恢复指南
+    url: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/troubleshooting.md
+    about: 提 Issue 前先按这里完成自检。

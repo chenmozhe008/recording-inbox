@@ -7,16 +7,34 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
 import subprocess
+import sys
 import urllib.request
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def configure_utf8_console() -> None:
+    """Windows 的旧控制台编码可能无法输出中文，不能让日志反过来打断任务。"""
+    if os.name != "nt":
+        return
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            try:
+                reconfigure(encoding="utf-8", errors="replace")
+            except (OSError, ValueError):
+                pass
+
+
+configure_utf8_console()
 
 
 def folder_token_from(value: str) -> str:
@@ -165,6 +183,26 @@ def lark_json(config: dict[str, Any], args: list[str], *, cwd: Path | None = Non
     return json.loads(stdout[start:])
 
 
+def lark_auth_status(config: dict[str, Any]) -> dict[str, Any]:
+    """返回 lark-cli 的结构化授权状态，供向导、自检和通知共用。"""
+    return lark_json(config, ["auth", "status", "--json"], timeout=30)
+
+
+def current_user_open_id(config: dict[str, Any]) -> str:
+    """优先读显式配置，否则从当前 lark-cli 用户身份自动识别 open_id。"""
+    configured = str(config.get("feishu_notify_user_id", "")).strip()
+    if configured and configured.lower() != "auto" and configured.isascii():
+        return configured
+    try:
+        status = lark_auth_status(config)
+        user = status.get("identities", {}).get("user", {})
+        if user.get("available"):
+            return str(user.get("openId") or "")
+    except Exception:
+        return ""
+    return ""
+
+
 def list_folder(config: dict[str, Any], folder_token: str) -> list[dict[str, Any]]:
     payload = lark_json(config, [
         "drive", "files", "list", "--as", "user",
@@ -239,24 +277,76 @@ def _first_http_url(obj: Any) -> str:
     return ""
 
 
-def notify_webhook(
+def _notification_markdown(
+    *,
+    title: str,
+    local_path: str = "",
+    doc_url: str = "",
+    error: str = "",
+) -> str:
+    if error:
+        return (
+            f"**录音处理失败：{title}**\n\n"
+            f"{error[:300]}\n\n"
+            "可查看状态和日志后重试；如急用，可先使用飞书妙记。"
+        )
+    lines = [f"**录音转写和纪要已完成：{title}**"]
+    if doc_url:
+        lines += ["", f"[打开飞书纪要]({doc_url})"]
+    elif local_path:
+        lines += ["", f"本地文件：`{local_path}`"]
+    return "\n".join(lines)
+
+
+def _notification_key(title: str, local_path: str, doc_url: str, error: str) -> str:
+    payload = "|".join((title, local_path, doc_url, error[:300])).encode("utf-8")
+    return "recording-inbox-" + hashlib.sha256(payload).hexdigest()[:32]
+
+
+def _send_direct_notification(
+    config: dict[str, Any],
+    *,
+    title: str,
+    local_path: str = "",
+    doc_url: str = "",
+    error: str = "",
+) -> bool:
+    user_id = current_user_open_id(config)
+    if not user_id:
+        raise RuntimeError(
+            "无法识别飞书接收人；请重新运行 lark-cli auth login，"
+            "或在 config.json 填 feishu_notify_user_id"
+        )
+    lark = find_executable(config, "lark_cli", "lark-cli")
+    markdown = _notification_markdown(
+        title=title, local_path=local_path, doc_url=doc_url, error=error,
+    )
+    run_command([
+        lark, "im", "+messages-send", "--as", "user",
+        "--user-id", user_id,
+        "--markdown", markdown,
+        "--idempotency-key", _notification_key(title, local_path, doc_url, error),
+    ], timeout=60)
+    return True
+
+
+def _valid_webhook(config: dict[str, Any]) -> str:
+    hook = str(config.get("feishu_notify_webhook", "")).strip()
+    return hook if hook.startswith("http") and hook.isascii() else ""
+
+
+def _send_webhook_notification(
     config: dict[str, Any],
     *,
     title: str,
     local_path: str = "",
     doc_result: dict[str, Any] | None = None,
     error: str = "",
-) -> None:
-    """处理完成或失败时，往飞书群「自定义机器人」webhook 发一张卡片。
-
-    读者在飞书群里加一个自定义机器人，把它的 webhook 地址填进 config 的
-    feishu_notify_webhook 即可；留空就完全不发（向后兼容旧配置）。
-    通知只是锦上添花，任何异常都不该拖垮主流程，所以整段 try/except 吞掉。
-    """
-    hook = str(config.get("feishu_notify_webhook", "")).strip()
-    if not hook or not hook.isascii():
-        # 空或还是占位说明文字（含中文）= 没配，不发
-        return
+) -> bool:
+    """兼容旧配置：向飞书群自定义机器人 Webhook 发交互卡片。"""
+    hook = _valid_webhook(config)
+    if not hook:
+        return False
     try:
         if error:
             header = {"template": "red",
@@ -264,8 +354,6 @@ def notify_webhook(
             lines = [f"**{title}**", "", error[:300]]
             actions: list[dict[str, Any]] = []
         else:
-            # 标题特意带「录音」二字：飞书自定义机器人要设关键词校验，
-            # 成功卡和失败告警都含「录音」，读者只配一个关键词就够。
             header = {"template": "green",
                       "title": {"tag": "plain_text", "content": "🎙️ 新录音纪要已生成"}}
             lines = [f"**{title}**"]
@@ -273,8 +361,6 @@ def notify_webhook(
                 lines += ["", f"本地已保存：{local_path}"]
             doc_url = _first_http_url(doc_result or {})
             if not doc_url:
-                # 导入结果里没带链接时自己拼一个：token 从返回里挖，
-                # 域名从用户配置的 output 文件夹链接里取（填的是纯 token 就拼不出来，退化为无按钮）。
                 data = (doc_result or {}).get("data", {})
                 result = data.get("result", {}) if isinstance(data.get("result"), dict) else {}
                 token = str(result.get("token") or data.get("token") or "")
@@ -307,7 +393,87 @@ def notify_webhook(
             hook, data=body, headers={"Content-Type": "application/json"},
         )
         urllib.request.urlopen(request, timeout=15).read()
+        return True
     except Exception as exc:
-        # 通知只是锦上添花，失败不影响主流程；留一行日志方便排查 webhook 配置问题。
         log(f"飞书通知发送失败（不影响纪要产出）：{exc}")
-        return
+        return False
+
+
+def notify_feishu(
+    config: dict[str, Any],
+    *,
+    title: str,
+    local_path: str = "",
+    doc_result: dict[str, Any] | None = None,
+    error: str = "",
+) -> bool:
+    """默认直达当前飞书账号；旧 Webhook 仅保留兼容和回退。"""
+    mode = str(config.get("feishu_notify_mode", "")).strip().lower()
+    if not mode:
+        mode = "webhook" if _valid_webhook(config) else "direct"
+    if mode in {"off", "none", "disabled"}:
+        # 已明确关闭时视为无需再处理，避免后台每分钟重复尝试。
+        return True
+
+    doc_url = _first_http_url(doc_result or {})
+    if not doc_url:
+        data = (doc_result or {}).get("data", {})
+        result = data.get("result", {}) if isinstance(data.get("result"), dict) else {}
+        token = str(result.get("token") or data.get("token") or "")
+        domain = re.search(r"https://[^/\s]+", str(
+            config.get("feishu_output_folder_link")
+            or config.get("feishu_output_folder_token")
+            or ""
+        ))
+        if token and domain:
+            doc_url = f"{domain.group(0)}/docx/{token}"
+
+    if mode == "direct":
+        try:
+            return _send_direct_notification(
+                config,
+                title=title,
+                local_path=local_path,
+                doc_url=doc_url,
+                error=error,
+            )
+        except Exception as exc:
+            log(f"飞书直达通知失败（不影响纪要产出）：{exc}")
+            if _valid_webhook(config):
+                return _send_webhook_notification(
+                    config,
+                    title=title,
+                    local_path=local_path,
+                    doc_result=doc_result,
+                    error=error,
+                )
+            return False
+
+    if mode == "webhook":
+        return _send_webhook_notification(
+            config,
+            title=title,
+            local_path=local_path,
+            doc_result=doc_result,
+            error=error,
+        )
+    log(f"未知 feishu_notify_mode={mode!r}，已跳过通知。")
+    return False
+
+
+def notify_webhook(
+    config: dict[str, Any],
+    *,
+    title: str,
+    local_path: str = "",
+    doc_result: dict[str, Any] | None = None,
+    error: str = "",
+) -> bool:
+    """兼容旧调用；新代码使用 notify_feishu。"""
+    return _send_webhook_notification(
+        config,
+        title=title,
+        local_path=local_path,
+        doc_result=doc_result,
+        error=error,
+    )

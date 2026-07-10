@@ -6,12 +6,15 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import platform
 import shutil
 import subprocess
 from pathlib import Path
+
+from common import current_user_open_id, lark_auth_status, load_dotenv, notify_feishu
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -48,7 +51,14 @@ def run_quiet(command: list[str], *, timeout: int = 30) -> subprocess.CompletedP
     return subprocess.run(command, **kwargs)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="检查 recording-inbox 运行环境")
+    parser.add_argument(
+        "--test-notification",
+        action="store_true",
+        help="自检通过后给当前飞书账号发送一条真实测试消息",
+    )
+    args = parser.parse_args(argv)
     print("== recording-inbox 环境自检 ==\n")
     print(f"系统：{platform.system()} {platform.release()}\n")
     all_ok = True
@@ -57,9 +67,13 @@ def main() -> int:
     config_path = ROOT / "config.json"
     has_config = check(
         "config.json 存在", config_path.is_file(),
-        "cp config.example.json config.json，然后按 README 填写",
+        "先运行 python scripts/setup.py 完成配置向导",
     )
     all_ok &= has_config
+    if not has_config:
+        print("\n== 结论 ==")
+        print(f"{FAIL} 请先运行配置向导，再重新执行本脚本。")
+        return 1
     config: dict = {}
     if has_config:
         try:
@@ -79,17 +93,55 @@ def main() -> int:
         "lark-cli 已安装", bool(lark_found),
         "npm install -g @larksuite/cli（见 docs/setup-feishu-app.md）",
     )
+    auth_payload: dict = {}
     if lark_found:
         try:
-            result = run_quiet([lark, "auth", "status"], timeout=30)
+            auth_payload = lark_auth_status(config)
             all_ok &= check(
-                "lark-cli 已登录授权", result.returncode == 0,
+                "lark-cli 已登录授权", True,
                 "运行 lark-cli auth login --domain drive,docs 完成授权",
             )
-        except (subprocess.SubprocessError, OSError):
-            all_ok &= check("lark-cli 可执行", False, "检查安装是否完整")
+        except (RuntimeError, subprocess.SubprocessError, OSError, json.JSONDecodeError):
+            all_ok &= check(
+                "lark-cli 已登录授权", False,
+                "运行 lark-cli auth login --domain drive,docs 完成授权",
+            )
 
-    # 3. ffmpeg / ffprobe
+    # 3. 飞书通知：新安装默认直达当前账号；Webhook 仅兼容旧配置
+    notify_mode = str(config.get("feishu_notify_mode", "")).strip().lower()
+    webhook = str(config.get("feishu_notify_webhook", "")).strip()
+    if not notify_mode:
+        notify_mode = "webhook" if webhook.startswith("http") else "direct"
+    notification_ready = True
+    if notify_mode == "direct":
+        user_id = current_user_open_id(config) if lark_found else ""
+        notification_ready &= check(
+            "已识别飞书消息接收账号", bool(user_id),
+            "重新运行 lark-cli auth login，或在 config.json 填 feishu_notify_user_id",
+        )
+        user_auth = auth_payload.get("identities", {}).get("user", {})
+        scopes = str(user_auth.get("scope") or "")
+        notification_ready &= check(
+            "已授权飞书消息发送权限",
+            "im:message.send_as_user" in scopes,
+            "运行 lark-cli auth login --scope \"im:message.send_as_user im:message\"",
+        )
+    elif notify_mode == "webhook":
+        notification_ready &= check(
+            "飞书群机器人 Webhook 已配置",
+            webhook.startswith("http") and webhook.isascii(),
+            "填写有效 feishu_notify_webhook，或把 feishu_notify_mode 改成 direct",
+        )
+    elif notify_mode in {"off", "none", "disabled"}:
+        print(f"{OK} 飞书通知已关闭")
+    else:
+        notification_ready = check(
+            "飞书通知模式有效", False,
+            "feishu_notify_mode 只能是 direct / webhook / off",
+        )
+    all_ok &= notification_ready
+
+    # 4. ffmpeg / ffprobe
     ffmpeg = str(config.get("executables", {}).get("ffmpeg", "")) or "ffmpeg"
     ffmpeg_ok = binary_exists(ffmpeg)
     if not ffmpeg_ok and os.name == "nt":
@@ -115,7 +167,7 @@ def main() -> int:
             "macOS 可 brew install ffmpeg；Windows 可留空或安装完整 ffmpeg 包。",
         )
 
-    # 4. 转写后端：FunASR 或 whisper.cpp 至少一个
+    # 5. 转写后端：FunASR 或 whisper.cpp 至少一个
     funasr_py = str(config.get("executables", {}).get("funasr_python", "")) or "python3"
     funasr_ok = False
     try:
@@ -144,16 +196,26 @@ def main() -> int:
         "FunASR（推荐，中文强）或 whisper.cpp 二选一装好",
     )
 
-    # 5. DeepSeek key（可选）
-    env_path = ROOT / ".env"
-    if env_path.is_file():
-        for line in env_path.read_text(encoding="utf-8").splitlines():
-            if line.strip().startswith("DEEPSEEK_API_KEY=") :
-                os.environ.setdefault("DEEPSEEK_API_KEY", line.split("=", 1)[1].strip())
-    if bool(config.get("summary_enabled", True)):
+    # 6. 纪要模板与 DeepSeek key（可选）
+    template = str(config.get("summary_template") or "meeting")
+    all_ok &= check(
+        "纪要模板有效",
+        template in {"meeting", "interview", "course", "project"},
+        "summary_template 只能是 meeting / interview / course / project",
+    )
+    prompt_file = str(config.get("summary_prompt_file") or "").strip()
+    if prompt_file:
         all_ok &= check(
-            "DEEPSEEK_API_KEY 已配置", bool(os.environ.get("DEEPSEEK_API_KEY", "").strip()),
-            "在项目根目录建 .env，写一行 DEEPSEEK_API_KEY=sk-...；"
+            "自定义提示词文件存在",
+            resolve_path(prompt_file).is_file(),
+            "检查 summary_prompt_file 路径，或留空使用内置模板",
+        )
+    load_dotenv()
+    if bool(config.get("summary_enabled", True)):
+        key_env = str(config.get("summary_api_key_env") or "DEEPSEEK_API_KEY")
+        all_ok &= check(
+            f"{key_env} 已配置", bool(os.environ.get(key_env, "").strip()),
+            f"在项目根目录建 .env，写一行 {key_env}=...；"
             "不想用 LLM 就把 config 的 summary_enabled 改成 false",
         )
     else:
@@ -161,6 +223,10 @@ def main() -> int:
 
     print("\n== 结论 ==")
     if all_ok:
+        if args.test_notification and notify_mode not in {"off", "none", "disabled"}:
+            sent = notify_feishu(config, title="recording-inbox 通知测试")
+            if not check("飞书测试消息发送成功", sent, "检查消息权限和通知配置"):
+                return 1
         print(f"{OK} 环境就绪。跑一次试试：python3 scripts/run.py")
         return 0
     print(f"{FAIL} 还有缺项，按上面的提示逐条补齐后重跑本脚本。")

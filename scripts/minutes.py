@@ -16,13 +16,16 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from common import atomic_write_json, log, update_status
+from common import atomic_write_json, log, resolve_path, update_status
 from metrics import mark_stage_started, record_stage_finished
 
 PROMPT_TEMPLATE = """你是中文会议纪要助手，请严格对标飞书妙记「智能纪要」的风格，但保持开源版轻量、可读。
 只能根据输入内容总结，不要编造人物、日期、金额、链接、待办。
 
 {speaker_policy}
+
+本次文稿类型要求：
+{template_instructions}
 
 请输出 Markdown，结构必须如下：
 
@@ -84,11 +87,47 @@ def speaker_policy_text(transcript: str) -> str:
     )
 
 
-def build_prompt(manifest: dict[str, Any], transcript: str) -> str:
+def template_instructions(config: dict[str, Any] | None = None) -> str:
+    config = config or {}
+    custom = str(config.get("summary_prompt_file") or "").strip()
+    if custom:
+        path = resolve_path(custom)
+        if not path.is_file():
+            raise RuntimeError(f"自定义提示词文件不存在：{path}")
+    else:
+        template = str(config.get("summary_template") or "meeting")
+        path = resolve_path(f"prompts/{template}.md")
+        if not path.is_file():
+            raise RuntimeError(f"未知纪要模板：{template}")
+    return path.read_text(encoding="utf-8").strip()
+
+
+def build_prompt(
+    manifest: dict[str, Any],
+    transcript: str,
+    config: dict[str, Any] | None = None,
+) -> str:
     return PROMPT_TEMPLATE.format(
         title=str(manifest.get("title", "录音纪要")),
         transcript=transcript,
         speaker_policy=speaker_policy_text(transcript),
+        template_instructions=template_instructions(config),
+    )
+
+
+def speaker_ids_in_text(text: str) -> set[str]:
+    return set(re.findall(r"(?:说话人|发言人|speaker_)\s*([0-9]+)", text, re.IGNORECASE))
+
+
+def suppress_single_speaker_labels(text: str, transcript: str) -> str:
+    """Prompt 之外再兜底一次，避免单人录音偶发出现无意义编号。"""
+    if len(speaker_ids_in_text(transcript)) > 1:
+        return text
+    return re.sub(
+        r"(?:说话人|发言人|speaker_)\s*1\s*[：:]?\s*",
+        "",
+        text,
+        flags=re.IGNORECASE,
     )
 
 
@@ -120,11 +159,12 @@ def ensure_h1(markdown: str, title: str) -> str:
 
 
 def call_llm(prompt: str, config: dict[str, Any]) -> str:
-    api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+    key_env = str(config.get("summary_api_key_env") or "DEEPSEEK_API_KEY")
+    api_key = os.environ.get(key_env, "").strip()
     if not api_key:
-        raise RuntimeError("缺少 DEEPSEEK_API_KEY（写在项目根目录 .env 里）")
+        raise RuntimeError(f"缺少 {key_env}（写在项目根目录 .env 里）")
     base_url = str(config.get("summary_api_base", "https://api.deepseek.com")).rstrip("/")
-    model = str(config.get("summary_model", "deepseek-chat"))
+    model = str(config.get("summary_model", "deepseek-v4-flash"))
     body = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
@@ -151,8 +191,12 @@ def call_llm(prompt: str, config: dict[str, Any]) -> str:
             last_error = RuntimeError("模型返回空内容")
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", "replace")[:300]
+            if exc.code in {401, 403}:
+                raise RuntimeError(f"模型 API Key 无效或没有权限（{exc.code}）：{detail}") from exc
+            if exc.code in {402, 429}:
+                raise RuntimeError(f"模型余额不足或请求受限（{exc.code}）：{detail}") from exc
             if 400 <= exc.code < 500:
-                raise RuntimeError(f"模型接口返回 {exc.code}（多半是 key 或余额问题）：{detail}") from exc
+                raise RuntimeError(f"模型请求配置有误（{exc.code}）：{detail}") from exc
             last_error = RuntimeError(f"模型接口返回 {exc.code}：{detail}")
         except (urllib.error.URLError, TimeoutError, ConnectionError, json.JSONDecodeError, KeyError) as exc:
             last_error = exc
@@ -171,12 +215,13 @@ def generate_minutes(task_dir: Path, config: dict[str, Any]) -> bool:
         update_status(task_dir, "minutes_ready", "纪要已跳过（summary_enabled=false），仅逐字稿。")
         return True
 
-    if not os.environ.get("DEEPSEEK_API_KEY", "").strip():
+    key_env = str(config.get("summary_api_key_env") or "DEEPSEEK_API_KEY")
+    if not os.environ.get(key_env, "").strip():
         # 没配 key 不算失败——失败态会被 launchd 每分钟重试，永远卡在这里。
         # 降级为只出文字记录，让闭环照样走完；想要智能纪要的用户看提示补 key 即可。
         (task_dir / "minutes.md").write_text(
             f"# {manifest['title']}\n\n"
-            "> 未配置 DEEPSEEK_API_KEY（写在项目根目录 .env 里），"
+            f"> 未配置 {key_env}（写在项目根目录 .env 里），"
             "本次只输出文字记录，没有智能纪要。\n\n"
             f"## 文字记录\n\n{transcript}",
             encoding="utf-8",
@@ -188,7 +233,7 @@ def generate_minutes(task_dir: Path, config: dict[str, Any]) -> bool:
     mark_stage_started(task_dir, "summary")
     try:
         summary = call_llm(
-            build_prompt(manifest, transcript),
+            build_prompt(manifest, transcript, config),
             config,
         )
     except Exception as exc:
@@ -201,12 +246,14 @@ def generate_minutes(task_dir: Path, config: dict[str, Any]) -> bool:
         manifest = {**manifest, "original_title": manifest.get("original_title") or manifest.get("title"), "title": generated_title}
         atomic_write_json(task_dir / "manifest.json", manifest)
     summary = ensure_h1(summary, generated_title)
+    summary = suppress_single_speaker_labels(summary, transcript)
+    transcript = suppress_single_speaker_labels(transcript, transcript)
     (task_dir / "minutes.md").write_text(
         f"{summary}\n\n---\n\n## 文字记录\n\n{transcript}",
         encoding="utf-8",
     )
     update_status(task_dir, "minutes_ready", "智能纪要已生成。", display_title=generated_title)
-    record_stage_finished(task_dir, config, "summary", backend=str(config.get("summary_model", "deepseek-chat")))
+    record_stage_finished(task_dir, config, "summary", backend=str(config.get("summary_model", "deepseek-v4-flash")))
     return True
 
 

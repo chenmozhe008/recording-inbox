@@ -2,55 +2,70 @@
 
 # recording-inbox
 
-Drop audio into a Feishu/Lark Drive folder. Your Mac or Windows PC transcribes it locally and publishes AI meeting notes back to Feishu/Lark.
+Drop audio into a Feishu/Lark Drive folder. A Mac or Windows PC transcribes it locally, creates structured AI notes, publishes a Feishu/Lark document, and sends you the result.
 
-![macOS](https://img.shields.io/badge/macOS-supported-black)
-![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-blue)
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
+[![macOS](https://img.shields.io/badge/macOS-supported-black)](docs/setup-macos.md)
+[![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-blue)](docs/setup-windows.md)
+[![CI](https://github.com/chenmozhe008/recording-inbox/actions/workflows/ci.yml/badge.svg)](https://github.com/chenmozhe008/recording-inbox/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-## What it does
+## How it works
 
 ```text
 iPhone / Android / desktop audio
-        ↓ upload to Feishu Drive inbox
-Mac or Windows checks every minute
-        ↓
-Local ASR with FunASR / SenseVoice
-        ↓
-AI notes with DeepSeek or any OpenAI-compatible model
-        ↓
-Local Markdown + Feishu/Lark online doc
+        -> Feishu Drive inbox
+        -> local FunASR transcription
+        -> AI notes
+        -> Feishu document
+        -> direct Feishu message
 ```
 
-It is useful if you record a lot, use Feishu/Lark daily, and want unlimited local transcription without burning through Feishu Minutes quota.
+The computer may be turned off temporarily. Audio stays in the inbox and resumes after the next login. A powered-off local computer cannot send an offline notification; it notifies you after pickup, completion, or failure.
 
-## Highlights
+## Quick start with an AI agent
 
-- Local transcription, no per-minute ASR fee.
-- macOS and Windows 10/11 support.
-- iPhone and Android friendly: any phone that can upload audio to Feishu Drive works.
-- Notes are more than transcripts: title, overview, topic outline, todos, chapters, decisions, quotes, and transcript.
-- AI-agent friendly: Claude Code / Codex / Cursor / Trae / WorkBuddy / ZCode / Hermes Agent can follow `AGENTS.md` to deploy it.
-
-## Quick start
-
-The Chinese README is canonical and more complete: [README.md](README.md)
-
-If you use an AI coding agent (Claude Code, Codex, Cursor, Trae, WorkBuddy, ZCode, Hermes Agent, ...), give it:
+Give Codex, Claude Code, or Cursor this prompt:
 
 ```text
 Deploy https://github.com/chenmozhe008/recording-inbox for me.
-Read AGENTS.md first, choose the macOS or Windows path based on my computer,
-and ask me only when you need Feishu auth, folder links, or an API key.
+Read AGENTS.md first, choose macOS or Windows based on my computer,
+and stop only when I need to scan Feishu, paste folder links, or enter an API key.
+Run setup checks and the simulated tests before enabling background processing.
 ```
 
-Manual setup:
+Manual guides:
 
-- macOS: see [README.md](README.md#方式-bmacos-手动安装)
-- Windows 10/11: see [docs/setup-windows.md](docs/setup-windows.md)
-- Phone upload: see [docs/upload-from-phone.md](docs/upload-from-phone.md)
+- [macOS](docs/setup-macos.md)
+- [Windows 10/11](docs/setup-windows.md)
+- [Phone and desktop upload](docs/upload-from-phone.md)
+
+Feishu's mobile UI changes over time. This repository does not treat a macOS Feishu bundle copied into iOS Simulator as mobile validation. Maintainers should use the [real-device recording checklist](docs/mobile-demo-checklist.md) when refreshing tutorial media.
+
+Both platforms use the same wizard:
+
+```bash
+python scripts/setup.py
+python scripts/setup_check.py
+```
+
+## Output
+
+Notes include an AI overview, outline, todos, chapters, decisions, quotes, and transcript. Built-in templates cover meetings, interviews, courses, and project discussions. See the [sample notes](examples/sample-minutes.md).
+
+Single-speaker recordings do not show meaningless `Speaker 1` labels. Multi-speaker recordings keep numbered labels when needed.
+
+## Privacy
+
+Transcription runs locally. If AI notes are enabled, transcript text is sent to the OpenAI-compatible API you configure. API keys stay in the local `.env` file and must never be committed.
+
+## Scope
+
+This repository intentionally stays small: ingest, transcription, notes, publishing, and notification. It does not include the private project's task dashboards, approval cards, AI execution system, or iOS app.
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md). Please remove tokens, IDs, local paths, recordings, and transcripts before opening an issue.
 
 ## License
 
-MIT
+[MIT](LICENSE)

@@ -75,6 +75,32 @@ def ensure_processed_folder(config: dict[str, Any], inbox_token: str, entries: l
     return create_folder(config, PROCESSED_FOLDER_NAME, inbox_token)
 
 
+def archive_seen_files(
+    config: dict[str, Any],
+    inbox_token: str,
+    entries: list[dict[str, Any]],
+    seen: set[str],
+) -> None:
+    """只补做云端归档，不再次下载或转写已入台账的文件。"""
+    stranded = [
+        entry for entry in entries
+        if entry.get("type") == "file" and str(entry.get("token")) in seen
+    ]
+    if not stranded:
+        return
+    try:
+        processed_token = ensure_processed_folder(config, inbox_token, entries)
+    except Exception as exc:
+        log(f"无法准备 processed 文件夹（下轮重试）：{exc}")
+        return
+    for entry in stranded:
+        try:
+            drive_move(config, str(entry["token"]), processed_token)
+            log(f"已补归档：{entry.get('name', entry['token'])}")
+        except Exception as exc:
+            log(f"云端归档仍失败（下轮重试）：{entry.get('name', entry['token'])}：{exc}")
+
+
 def pull(config: dict[str, Any]) -> int:
     inbox_token = configured_folder(config, "inbox")
     if not inbox_token:
@@ -84,6 +110,7 @@ def pull(config: dict[str, Any]) -> int:
     extensions = {ext.lower() for ext in config.get("supported_extensions", [".m4a", ".mp3", ".wav"])}
     seen = load_ledger(config)
     entries = list_folder(config, inbox_token)
+    archive_seen_files(config, inbox_token, entries, seen)
     pending = [
         entry for entry in entries
         if entry.get("type") == "file"

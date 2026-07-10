@@ -15,7 +15,7 @@
 
   <key>ProgramArguments</key>
   <array>
-    <string>/usr/bin/python3</string>
+    <string>/path/to/recording-inbox/asr-venv/bin/python</string>
     <string>/path/to/recording-inbox/scripts/run.py</string>
   </array>
 
