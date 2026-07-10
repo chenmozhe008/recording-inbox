@@ -1,6 +1,7 @@
 {
-  "feishu_inbox_folder_token": "填你的飞书云盘 inbox 文件夹 token（见 docs/setup-feishu-app.md）",
-  "feishu_output_folder_token": "纪要文档输出到哪个云盘文件夹，留空则只出本地 Markdown",
+  "feishu_inbox_folder_token": "贴你的飞书 inbox 文件夹链接（浏览器地址栏整条粘进来即可，也兼容直接填 token；见 docs/setup-feishu-app.md）",
+  "feishu_output_folder_token": "纪要文档输出到哪个云盘文件夹，贴文件夹链接即可，留空则只出本地 Markdown",
+  "feishu_notify_webhook": "选填：飞书群自定义机器人的 webhook 地址，填了就在转写完成/失败时往群里推卡片，留空则不通知",
 
   "work_dir": "data",
   "output_dir": "output/minutes",

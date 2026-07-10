@@ -69,7 +69,7 @@ def main() -> int:
         inbox = str(config.get("feishu_inbox_folder_token", ""))
         all_ok &= check(
             "已填 feishu_inbox_folder_token", bool(inbox) and "填" not in inbox,
-            "见 docs/setup-feishu-app.md 拿到 inbox 文件夹 token",
+            "把飞书 inbox 文件夹链接贴进 config.json（见 docs/setup-feishu-app.md）",
         )
 
     # 2. lark-cli

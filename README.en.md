@@ -42,7 +42,7 @@ If you use Claude Code / Codex / Cursor, give it:
 ```text
 Deploy https://github.com/chenmozhe008/recording-inbox for me.
 Read AGENTS.md first, choose the macOS or Windows path based on my computer,
-and ask me only when you need Feishu auth, folder tokens, or an API key.
+and ask me only when you need Feishu auth, folder links, or an API key.
 ```
 
 Manual setup:

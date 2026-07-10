@@ -22,6 +22,7 @@ from common import (
     create_folder,
     drive_download,
     drive_move,
+    folder_token_from,
     list_folder,
     log,
     now_iso,
@@ -75,7 +76,7 @@ def ensure_processed_folder(config: dict[str, Any], inbox_token: str, entries: l
 
 
 def pull(config: dict[str, Any]) -> int:
-    inbox_token = str(config.get("feishu_inbox_folder_token", "")).strip()
+    inbox_token = folder_token_from(str(config.get("feishu_inbox_folder_token", "")))
     if not inbox_token or "填" in inbox_token:
         log("未配置 feishu_inbox_folder_token，跳过云盘拉取。")
         return 0
