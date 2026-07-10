@@ -1,60 +1,81 @@
-# 飞书侧配置
+# 飞书配置
 
-分两部分：电脑端（人人都要做，5 分钟）和自建应用（只有用快捷指令自动上传才需要）。
+普通用户只需要：登录 lark-cli、建立两个文件夹。快捷指令自建应用和旧 Webhook 都是高级选项。
 
-## 一、电脑端：lark-cli 安装与授权（必做）
-
-lark-cli 是飞书官方命令行工具，本项目所有飞书操作（下载录音、导入文档）都靠它。
-它用「设备授权」模式登录你自己的飞书账号，**不需要你创建任何应用**。
+## 1. lark-cli 授权（必做）
 
 ```bash
-# 1. 安装（需要 Node.js，没有就先 brew install node）
 npm install -g @larksuite/cli
-
-# 2. 授权登录（会给一个链接/二维码，用飞书 App 扫码确认）
-lark-cli auth login --domain drive,docs
-
-# 3. 确认授权成功
-lark-cli auth status
+lark-cli auth login --domain drive,docs --scope "im:message.send_as_user im:message"
+lark-cli auth status --json
 ```
 
-## 二、建 inbox 文件夹，拿文件夹链接（必做）
+授权包含：
 
-1. 打开飞书网页版 → 云文档 → 云盘，新建一个文件夹，比如叫 `录音inbox`；
-2. 打开这个文件夹，直接复制浏览器地址栏那条链接，形如
-   `https://xxx.feishu.cn/drive/folder/FldbxxxxxxxxxxxxxxxxxxxN`；
-3. 整条链接粘进 `config.json` 的 `feishu_inbox_folder_link` 就行，程序自己会处理。
+- 读取 inbox 音频；
+- 创建和导入飞书文档；
+- 用当前飞书账号给自己发送完成/失败消息。
 
-想让纪要也发成飞书在线文档的话，再建一个输出文件夹（比如 `会议纪要`），同样把链接粘进 `feishu_output_folder_link`。留空则只出本地 Markdown。
+它不需要你创建飞书自建应用。
 
-## 三、自建应用（只有快捷指令自动上传才需要）
+## 2. 建立文件夹（必做）
 
-iPhone 快捷指令直接调飞书开放平台 API 上传文件，需要一个「自建应用」的凭证：
+在飞书云盘建立：
 
-1. 打开 [飞书开放平台](https://open.feishu.cn) → 开发者后台 → 创建企业自建应用（个人版飞书也可以建）；
-2. 名字随意（比如「录音上传」），创建后进「凭证与基础信息」，记下 `App ID` 和 `App Secret`；
-3. 进「权限管理」，搜索并开通：`drive:drive`（查看、评论、编辑和管理云空间中所有文件）——快捷指令上传文件要用；
-4. 进「版本管理与发布」，创建版本并发布（个人版通常秒过审）；
-5. **关键一步**：把 inbox 文件夹共享给这个应用——回到云盘 inbox 文件夹 → 分享 → 添加协作者 → 搜你的应用名字 → 给「可编辑」权限。不做这步，快捷指令上传会报无权限。
+- `recording-inbox`：上传录音；
+- `recording-minutes`：接收纪要，可选。
 
-拿到 `App ID` / `App Secret` 后，回到 `docs/upload-from-phone.md` 继续配快捷指令。
+打开文件夹，复制浏览器地址栏完整链接，例如：
 
-## 四、飞书群机器人通知（选填，强烈推荐）
+```text
+https://your-team.feishu.cn/drive/folder/FOLDER_TOKEN
+```
 
-配好后：每段录音转写完成，会自动往你指定的飞书群推一张卡片（内容标题 + 「打开飞书纪要」按钮），失败也会推一条红色告警。不用再主动去翻结果。
+运行 `python scripts/setup.py`，把链接直接粘进去。程序自己提取 token。
 
-1. 在飞书里建一个群（就你自己一个人也行，当「通知收件箱」用）；
-2. 群设置 → 群机器人 → 添加机器人 → 选「自定义机器人 / Custom Bot」；
-3. 起个名字（比如 `录音纪要`）。**安全设置**这一步最省事的选法：勾「自定义关键词」，填一个词 `录音`——
-   本工具的成功卡片和失败告警标题都带「录音」二字，配这一个关键词就都能收到；
-4. 创建完成后复制它的 **webhook 地址**，形如
-   `https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxx`；
-5. 整条粘进 `config.json` 的 `feishu_notify_webhook`。留空则不通知。
+## 3. 结果通知（默认）
 
-> 这一步不需要上面第三节的自建应用，和快捷指令是两回事，单独配即可。
+新安装默认：
+
+```json
+{
+  "feishu_notify_mode": "direct",
+  "feishu_notify_user_id": "auto"
+}
+```
+
+程序从 lark-cli 自动识别当前账号，完成后直接发飞书消息，不需要建群、加机器人或复制 Webhook。
+
+验证：
+
+```bash
+python scripts/setup_check.py --test-notification
+```
+
+这条命令会发送真实测试消息。
+
+## 4. 群机器人 Webhook（旧配置兼容）
+
+已有用户可以继续使用：
+
+```json
+{
+  "feishu_notify_mode": "webhook",
+  "feishu_notify_webhook": "YOUR_WEBHOOK_URL"
+}
+```
+
+新用户通常不需要这条路径。Webhook 只保留兼容和团队群通知场景。
+
+## 5. iPhone 快捷指令自建应用（高级）
+
+只有想让快捷指令直接调用飞书 API 上传时才需要 App ID / App Secret。日常手动上传、电脑拖拽、转写、纪要和结果通知都不依赖它。
+
+配置步骤见 [手机上传教程](upload-from-phone.md#iphone-快捷指令高级)。App Secret 不要发给 AI Agent、不要截图、不要提交 GitHub。
 
 ## 常见问题
 
-- **`lark-cli auth login` 打不开链接**：手机飞书 App 扫二维码也行（`lark-cli auth qrcode`）。
-- **下载报权限错误**：确认授权时带了 `--domain drive,docs`；重新 `lark-cli auth login` 补授权即可。
-- **快捷指令上传 403**：九成是第三步第 5 条没做（文件夹没共享给应用）。
+- 登录链接打不开：运行 `lark-cli auth qrcode` 用飞书扫码。
+- 下载无权限：重新授权 `drive,docs`，并确认账号能打开 inbox 文件夹。
+- 消息无权限：重新申请 `im:message.send_as_user im:message` scope。
+- output 没文档：检查 output 文件夹链接和编辑权限。

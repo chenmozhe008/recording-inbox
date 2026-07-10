@@ -20,7 +20,7 @@ from common import (
     import_markdown_as_docx,
     load_config,
     log,
-    notify_webhook,
+    notify_feishu,
     read_status,
     resolve_path,
     update_status,
@@ -72,16 +72,22 @@ def publish_task(task_dir: Path, config: dict[str, Any]) -> bool:
             update_status(task_dir, "publish_failed", f"飞书文档导入失败：{exc}"[:300])
             return False
 
+    log(f"完成：{manifest['title']} -> {local_path.name}")
     update_status(
         task_dir, "published", "处理完成。",
         local_output=str(local_path),
         feishu_import=doc_result.get("data", {}),
+        notification_sent=False,
     )
-    log(f"完成：{manifest['title']} -> {local_path.name}")
-    notify_webhook(
+    notification_sent = notify_feishu(
         config, title=str(manifest["title"]),
         local_path=str(local_path), doc_result=doc_result,
     )
+    if notification_sent:
+        update_status(
+            task_dir, "published", "处理完成。",
+            notification_sent=True,
+        )
     return True
 
 
@@ -101,14 +107,37 @@ def notify_failure(task_dir: Path, config: dict[str, Any]) -> None:
         title = str(manifest.get("title") or task_dir.name)
     except Exception:
         title = task_dir.name
-    notify_webhook(
+    notified = notify_feishu(
         config, title=title,
         error=str(status.get("error") or status.get("message") or "处理失败"),
     )
-    update_status(
-        task_dir, current, str(status.get("message", "")),
-        failure_notified=current,
+    if notified:
+        update_status(
+            task_dir, current, str(status.get("message", "")),
+            failure_notified=current,
+        )
+
+
+def retry_pending_notification(task_dir: Path, config: dict[str, Any]) -> None:
+    status = read_status(task_dir)
+    if status.get("status") != "published" or status.get("notification_sent") is not False:
+        return
+    try:
+        manifest = json.loads((task_dir / "manifest.json").read_text(encoding="utf-8"))
+        title = str(manifest.get("title") or task_dir.name)
+    except Exception:
+        title = task_dir.name
+    sent = notify_feishu(
+        config,
+        title=title,
+        local_path=str(status.get("local_output") or ""),
+        doc_result={"data": status.get("feishu_import", {})},
     )
+    if sent:
+        update_status(
+            task_dir, "published", str(status.get("message") or "处理完成。"),
+            notification_sent=True,
+        )
 
 
 def run_once(config: dict[str, Any]) -> None:
@@ -117,6 +146,9 @@ def run_once(config: dict[str, Any]) -> None:
         log(f"拉取 {pulled} 个新录音。")
     for task_dir in task_dirs(config):
         status = read_status(task_dir)
+        if status.get("status") == "published":
+            retry_pending_notification(task_dir, config)
+            continue
         stage = RESUMABLE.get(str(status.get("status", "pending")))
         if stage is None or status.get("retryable") is False:
             continue
@@ -135,22 +167,84 @@ def run_once(config: dict[str, Any]) -> None:
                 notify_failure(task_dir, config)
 
 
+def _lock_pid(lock_path: Path) -> int:
+    try:
+        raw = lock_path.read_text(encoding="utf-8").strip()
+        if raw.startswith("{"):
+            return int(json.loads(raw).get("pid") or 0)
+        return int(raw)
+    except (OSError, ValueError, json.JSONDecodeError, TypeError):
+        return 0
+
+
+def _pid_is_running(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    if pid == os.getpid():
+        return True
+    if os.name == "nt":
+        try:
+            import ctypes
+
+            handle = ctypes.windll.kernel32.OpenProcess(0x1000, False, pid)
+            if not handle:
+                return False
+            ctypes.windll.kernel32.CloseHandle(handle)
+            return True
+        except Exception:
+            return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
+def acquire_run_lock(lock_path: Path, *, fallback_max_age: int) -> bool:
+    """原进程已死就立即清锁，让断电/重启后的任务马上续跑。"""
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    for _attempt in range(2):
+        try:
+            descriptor = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            pid = _lock_pid(lock_path)
+            try:
+                age = datetime.now().timestamp() - lock_path.stat().st_mtime
+            except OSError:
+                continue
+            if pid and _pid_is_running(pid):
+                return False
+            if not pid and age < fallback_max_age:
+                return False
+            log("发现上轮遗留锁，原进程已结束，清锁后继续。")
+            lock_path.unlink(missing_ok=True)
+            continue
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            json.dump({"pid": os.getpid(), "created_at": datetime.now().isoformat()}, handle)
+        return True
+    return False
+
+
+def release_run_lock(lock_path: Path) -> None:
+    if _lock_pid(lock_path) == os.getpid():
+        lock_path.unlink(missing_ok=True)
+
+
 def main() -> int:
     config = load_config()
     lock_path = resolve_path(config.get("work_dir", "data")) / "state" / "run.lock"
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
-    if lock_path.is_file():
-        age = datetime.now().timestamp() - lock_path.stat().st_mtime
-        # 锁超过转写超时上限还在 = 上轮进程多半已死，清锁继续
-        if age < int(config.get("transcription_timeout_seconds", 14400)) + 600:
-            log("上一轮还在运行，本轮跳过。")
-            return 0
-        log("发现过期锁文件，清除后继续。")
-    lock_path.write_text(str(os.getpid()), encoding="utf-8")
+    max_age = int(config.get("transcription_timeout_seconds", 14400)) + 600
+    if not acquire_run_lock(lock_path, fallback_max_age=max_age):
+        log("上一轮还在运行，本轮跳过。")
+        return 0
     try:
         run_once(config)
     finally:
-        lock_path.unlink(missing_ok=True)
+        release_run_lock(lock_path)
     return 0
 
 

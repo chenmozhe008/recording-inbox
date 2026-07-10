@@ -1,0 +1,63 @@
+name: Bug 报告
+description: 安装、转写、纪要、发布或通知出现问题
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请先运行 `python scripts/setup_check.py`。不要粘贴 API Key、飞书 token、open_id、Webhook、真实录音或未脱敏文字稿。
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统
+      options:
+        - macOS Apple Silicon
+        - macOS Intel
+        - Windows 11
+        - Windows 10
+        - 其他
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python 版本
+      placeholder: 例如 3.12.4
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: 出问题的阶段
+      options:
+        - 安装或配置
+        - 飞书上传或拉取
+        - 本地转写
+        - 智能纪要
+        - 飞书文档发布
+        - 飞书消息通知
+        - 后台任务或重启恢复
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 从哪个命令或操作开始，发生了什么。
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: 已脱敏状态和错误
+      description: 可粘贴 status.json 的 status/message/error，删除所有 token、ID 和个人内容。
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 你预期发生什么？
+    validations:
+      required: true

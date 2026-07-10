@@ -1,0 +1,35 @@
+name: 功能建议
+description: 提议改进轻量录音处理链路
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        本仓库只维护 inbox、转写、纪要、飞书发布和通知。多维表工作台、确认卡、AI 自动执行和 iOS App 不在本仓库范围内。
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你遇到的实际问题
+      description: 请先描述场景和阻碍，不要只写想要的技术方案。
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: 现在怎么处理？
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议的改进
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: 范围确认
+      options:
+        - label: 这个建议属于轻量录音处理链路，不依赖私有主系统。
+          required: true
