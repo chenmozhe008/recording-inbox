@@ -171,6 +171,19 @@ def generate_minutes(task_dir: Path, config: dict[str, Any]) -> bool:
         update_status(task_dir, "minutes_ready", "纪要已跳过（summary_enabled=false），仅逐字稿。")
         return True
 
+    if not os.environ.get("DEEPSEEK_API_KEY", "").strip():
+        # 没配 key 不算失败——失败态会被 launchd 每分钟重试，永远卡在这里。
+        # 降级为只出文字记录，让闭环照样走完；想要智能纪要的用户看提示补 key 即可。
+        (task_dir / "minutes.md").write_text(
+            f"# {manifest['title']}\n\n"
+            "> 未配置 DEEPSEEK_API_KEY（写在项目根目录 .env 里），"
+            "本次只输出文字记录，没有智能纪要。\n\n"
+            f"## 文字记录\n\n{transcript}",
+            encoding="utf-8",
+        )
+        update_status(task_dir, "minutes_ready", "未配置 DEEPSEEK_API_KEY，已跳过智能纪要，仅输出文字记录。")
+        return True
+
     update_status(task_dir, "summarizing", "正在生成智能纪要。")
     mark_stage_started(task_dir, "summary")
     try:

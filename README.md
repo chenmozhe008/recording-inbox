@@ -66,7 +66,7 @@ DeepSeek 等模型生成智能纪要
 ```text
 帮我部署 https://github.com/chenmozhe008/recording-inbox
 请先读 AGENTS.md，按我的电脑系统选择 macOS 或 Windows 路径。
-需要我扫码、填飞书文件夹 token、填 DeepSeek Key 时再问我。
+需要我扫码、贴飞书文件夹链接、填 DeepSeek Key 时再问我。
 ```
 
 AI 助手会按系统自动走安装、自检、试跑、后台任务配置。
@@ -86,7 +86,7 @@ python3 -m venv asr-venv
 lark-cli auth login --domain drive,docs
 
 cp config.example.json config.json
-# 编辑 config.json，填 feishu_inbox_folder_token / feishu_output_folder_token
+# 编辑 config.json，把飞书 inbox / output 文件夹链接贴进对应字段
 # 可选：echo 'DEEPSEEK_API_KEY=sk-你的key' > .env
 
 python3 scripts/setup_check.py
@@ -168,8 +168,9 @@ cp config.example.json config.json
 
 | 字段 | 说明 |
 |---|---|
-| `feishu_inbox_folder_token` | 手机或电脑上传录音的飞书文件夹 |
-| `feishu_output_folder_token` | 智能纪要输出文件夹；留空则只输出本地 Markdown |
+| `feishu_inbox_folder_token` | 手机或电脑上传录音的飞书文件夹；**贴文件夹链接即可**（也兼容填 token） |
+| `feishu_output_folder_token` | 智能纪要输出文件夹，贴链接即可；留空则只输出本地 Markdown |
+| `feishu_notify_webhook` | 选填：飞书群自定义机器人 webhook，填了就在转写完成/失败时推卡片到群 |
 | `summary_enabled` | 是否启用 AI 智能纪要 |
 | `summary_api_base` / `summary_model` | OpenAI 兼容模型接口，默认 DeepSeek |
 | `executables.funasr_python` | ASR 虚拟环境里的 Python |

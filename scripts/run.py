@@ -16,9 +16,11 @@ from pathlib import Path
 from typing import Any
 
 from common import (
+    folder_token_from,
     import_markdown_as_docx,
     load_config,
     log,
+    notify_webhook,
     read_status,
     resolve_path,
     update_status,
@@ -59,7 +61,7 @@ def publish_task(task_dir: Path, config: dict[str, Any]) -> bool:
     shutil.copyfile(minutes_path, local_path)
 
     # 2) 飞书在线文档（可选）
-    folder_token = str(config.get("feishu_output_folder_token", "")).strip()
+    folder_token = folder_token_from(str(config.get("feishu_output_folder_token", "")))
     doc_result: dict[str, Any] = {}
     if folder_token and "填" not in folder_token and "留空" not in folder_token:
         try:
@@ -76,7 +78,37 @@ def publish_task(task_dir: Path, config: dict[str, Any]) -> bool:
         feishu_import=doc_result.get("data", {}),
     )
     log(f"完成：{manifest['title']} -> {local_path.name}")
+    notify_webhook(
+        config, title=str(manifest["title"]),
+        local_path=str(local_path), doc_result=doc_result,
+    )
     return True
+
+
+def notify_failure(task_dir: Path, config: dict[str, Any]) -> None:
+    """某一步失败时，把失败原因也推到飞书群，别让录音石沉大海。
+
+    launchd 每分钟重试一次失败任务，如果每次失败都发一张告警卡，
+    群里一小时就是 60 张。所以按「失败状态名」去重：同一个阶段的失败
+    只告警一次；等它换了阶段（比如转写修好了、纪要又失败）才会再发。
+    """
+    status = read_status(task_dir)
+    current = str(status.get("status", ""))
+    if status.get("failure_notified") == current:
+        return
+    try:
+        manifest = json.loads((task_dir / "manifest.json").read_text(encoding="utf-8"))
+        title = str(manifest.get("title") or task_dir.name)
+    except Exception:
+        title = task_dir.name
+    notify_webhook(
+        config, title=title,
+        error=str(status.get("error") or status.get("message") or "处理失败"),
+    )
+    update_status(
+        task_dir, current, str(status.get("message", "")),
+        failure_notified=current,
+    )
 
 
 def run_once(config: dict[str, Any]) -> None:
@@ -90,14 +122,17 @@ def run_once(config: dict[str, Any]) -> None:
             continue
         if stage == "transcribe":
             if not transcribe_task(task_dir, config):
+                notify_failure(task_dir, config)
                 continue
             stage = "minutes"
         if stage == "minutes":
             if not generate_minutes(task_dir, config):
+                notify_failure(task_dir, config)
                 continue
             stage = "publish"
         if stage == "publish":
-            publish_task(task_dir, config)
+            if not publish_task(task_dir, config):
+                notify_failure(task_dir, config)
 
 
 def main() -> int:

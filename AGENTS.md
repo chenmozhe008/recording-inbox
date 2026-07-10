@@ -19,9 +19,10 @@
 这些必须让用户自己完成或提供，不要猜：
 
 1. 飞书扫码授权：`lark-cli auth login --domain drive,docs`
-2. 飞书 inbox 文件夹 URL 或 folder token
-3. 飞书 output 文件夹 URL 或 folder token（可选）
+2. 飞书 inbox 文件夹链接（整条 URL 粘进 `feishu_inbox_folder_token`，程序会自动取 token）
+3. 飞书 output 文件夹链接（可选，粘进 `feishu_output_folder_token`）
 4. DeepSeek API Key（可选；没有就关闭 `summary_enabled`）
+5. 飞书群机器人 webhook（可选，粘进 `feishu_notify_webhook`，转写完成/失败推卡片到群）
 
 密钥只能写入 `.env`，不要写入 `config.json`，不要提交到 git。
 

@@ -52,7 +52,7 @@ asr-venv\Scripts\pip.exe install -i https://pypi.tuna.tsinghua.edu.cn/simple fun
 - `recording-inbox`：手机上传录音的入口。
 - `recording-minutes`：智能纪要输出位置，可选。
 
-打开文件夹 URL，复制 `/drive/folder/` 后面的 token，写进配置：
+打开文件夹，把浏览器地址栏那条链接整条复制下来，写进配置（程序会自动从链接里取 token）：
 
 ```bat
 copy config.example.json config.json
@@ -63,8 +63,8 @@ Windows 推荐这样写：
 
 ```json
 {
-  "feishu_inbox_folder_token": "你的 inbox folder token",
-  "feishu_output_folder_token": "你的 output folder token，留空则只生成本地 Markdown",
+  "feishu_inbox_folder_token": "粘贴你的 inbox 文件夹链接",
+  "feishu_output_folder_token": "粘贴你的 output 文件夹链接，留空则只生成本地 Markdown",
   "work_dir": "data",
   "output_dir": "output/minutes",
   "summary_enabled": true,

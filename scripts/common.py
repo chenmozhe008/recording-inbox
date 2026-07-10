@@ -9,12 +9,30 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def folder_token_from(value: str) -> str:
+    """把「飞书文件夹链接」或「folder token」统一成 folder token。
+
+    普通读者从浏览器地址栏复制的是整条链接，形如
+    https://xxx.feishu.cn/drive/folder/FldbxxxxxxxxN?from=space_home ，
+    让他们自己从中抠出 token 容易出错。这里统一处理：
+    - 是链接：取 /folder/ 后面、遇到 ? # / 之前那段，就是 token；
+    - 已经是纯 token：原样返回（向后兼容旧配置）。
+    """
+    value = value.strip()
+    match = re.search(r"/folder/([^/?#]+)", value)
+    if match:
+        return match.group(1)
+    return value
 
 
 def now_iso() -> str:
@@ -188,3 +206,89 @@ def import_markdown_as_docx(config: dict[str, Any], md_path: Path, name: str, fo
         "--name", name,
         "--folder-token", folder_token,
     ], cwd=md_path.parent, timeout=600)
+
+
+def _first_http_url(obj: Any) -> str:
+    """从飞书返回的嵌套结构里挖出第一个 http 链接，用作卡片按钮跳转地址。"""
+    if isinstance(obj, str):
+        return obj if obj.startswith("http") else ""
+    if isinstance(obj, dict):
+        for value in obj.values():
+            found = _first_http_url(value)
+            if found:
+                return found
+    if isinstance(obj, list):
+        for value in obj:
+            found = _first_http_url(value)
+            if found:
+                return found
+    return ""
+
+
+def notify_webhook(
+    config: dict[str, Any],
+    *,
+    title: str,
+    local_path: str = "",
+    doc_result: dict[str, Any] | None = None,
+    error: str = "",
+) -> None:
+    """处理完成或失败时，往飞书群「自定义机器人」webhook 发一张卡片。
+
+    读者在飞书群里加一个自定义机器人，把它的 webhook 地址填进 config 的
+    feishu_notify_webhook 即可；留空就完全不发（向后兼容旧配置）。
+    通知只是锦上添花，任何异常都不该拖垮主流程，所以整段 try/except 吞掉。
+    """
+    hook = str(config.get("feishu_notify_webhook", "")).strip()
+    if not hook or "填" in hook:
+        return
+    try:
+        if error:
+            header = {"template": "red",
+                      "title": {"tag": "plain_text", "content": "⚠️ 录音处理失败"}}
+            lines = [f"**{title}**", "", error[:300]]
+            actions: list[dict[str, Any]] = []
+        else:
+            # 标题特意带「录音」二字：飞书自定义机器人要设关键词校验，
+            # 成功卡和失败告警都含「录音」，读者只配一个关键词就够。
+            header = {"template": "green",
+                      "title": {"tag": "plain_text", "content": "🎙️ 新录音纪要已生成"}}
+            lines = [f"**{title}**"]
+            if local_path:
+                lines += ["", f"本地已保存：{local_path}"]
+            doc_url = _first_http_url(doc_result or {})
+            if not doc_url:
+                # 导入结果里没带链接时自己拼一个：token 从返回里挖，
+                # 域名从用户配置的 output 文件夹链接里取（填的是纯 token 就拼不出来，退化为无按钮）。
+                data = (doc_result or {}).get("data", {})
+                result = data.get("result", {}) if isinstance(data.get("result"), dict) else {}
+                token = str(result.get("token") or data.get("token") or "")
+                domain = re.search(r"https://[^/\s]+", str(config.get("feishu_output_folder_token", "")))
+                if token and domain:
+                    doc_url = f"{domain.group(0)}/docx/{token}"
+            actions = []
+            if doc_url:
+                lines += ["", "智能纪要 + 文字记录已整理好，点开查看："]
+                actions = [{
+                    "tag": "action",
+                    "actions": [{
+                        "tag": "button",
+                        "text": {"tag": "plain_text", "content": "打开飞书纪要"},
+                        "url": doc_url,
+                        "type": "primary",
+                    }],
+                }]
+        elements: list[dict[str, Any]] = [
+            {"tag": "div", "text": {"tag": "lark_md", "content": "\n".join(lines)}},
+        ]
+        elements += actions
+        card = {"config": {"wide_screen_mode": True}, "header": header, "elements": elements}
+        body = json.dumps({"msg_type": "interactive", "card": card}).encode("utf-8")
+        request = urllib.request.Request(
+            hook, data=body, headers={"Content-Type": "application/json"},
+        )
+        urllib.request.urlopen(request, timeout=15).read()
+    except Exception as exc:
+        # 通知只是锦上添花，失败不影响主流程；留一行日志方便排查 webhook 配置问题。
+        log(f"飞书通知发送失败（不影响纪要产出）：{exc}")
+        return
