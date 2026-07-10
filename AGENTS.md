@@ -1,45 +1,129 @@
 # 给 AI 助手的部署指南
 
-> 你是一个 AI 编程助手（Claude Code / Codex / Cursor 等），你的用户想部署本项目。
-> 本文件是为你写的操作手册。用户看的版本是 README.md，两者内容一致，本文只是更利于你执行。
+你是 Claude Code / Codex / Cursor 这类 AI 编程助手。用户想部署 `recording-inbox`。
 
-## 项目一句话
+目标：让用户把录音上传到飞书 inbox 文件夹后，电脑自动拉取、转写、生成智能纪要并发布到飞书。
 
-iPhone 录音 → 飞书云盘 inbox → 这台 Mac 本地转写（FunASR）→ LLM 纪要 → 本地 Markdown + 飞书文档。全部脚本在 `scripts/`，配置在 `config.json`（从 `config.example.json` 拷贝）。
+## 先判断系统
 
-## 部署流程（按序执行，每步验证后再进下一步）
+先运行或询问用户确认：
 
-1. **环境确认**：macOS + Homebrew。没有 brew 时停下来，把 https://brew.sh 的安装命令给用户自己跑（涉及 sudo，不要代跑）。
-2. **基础依赖**：`brew install ffmpeg node`，然后 `npm install -g @larksuite/cli`。npm 全局装报权限错时，提示用户配置 npm prefix 或用 sudo，由用户决定。
-3. **转写后端**（耗时最长，约 2GB，提前告知用户）：
-   ```bash
-   python3 -m venv asr-venv
-   ./asr-venv/bin/pip install funasr modelscope torch torchaudio
-   ```
-   装完验证：`./asr-venv/bin/python3 -c "import funasr"`。
-4. **飞书授权**：`lark-cli auth login --domain drive,docs` 会输出授权链接/二维码——**必须把它交给用户完成扫码**，你无法代替。完成后 `lark-cli auth status` 验证。
-5. **需要用户提供的两个信息**（主动问，不要猜）：
-   - inbox 文件夹 token：让用户在飞书云盘建一个文件夹，把文件夹 URL 发给你，你从 URL 提取 token（`/drive/folder/` 后面那串）；
-   - DeepSeek API key（可选）：用户没有或不想要 AI 纪要时，把 `config.json` 的 `summary_enabled` 设为 `false`。
-6. **写配置**：`cp config.example.json config.json`，填入 token；key 写进 `.env`（格式 `DEEPSEEK_API_KEY=sk-...`）。**绝不把 key 写进 config.json 或提交到 git。**
-7. **自检**：`python3 scripts/setup_check.py`，逐条修到全绿。
-8. **首次试跑**：让用户往 inbox 文件夹传一个 1 分钟以上的音频，然后 `python3 scripts/run.py`。首次运行会自动下载约 1GB 转写模型（modelscope 国内直连），耐心等待。成功标志：`output/minutes/` 出现 Markdown 文件；配置了输出文件夹的话飞书里出现在线文档。
-9. **挂定时**（经用户同意后执行）：
-   ```bash
-   sed "s|/path/to/recording-inbox|$(pwd)|g" launchd/com.example.recording-inbox.plist > ~/Library/LaunchAgents/com.example.recording-inbox.plist
-   launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.example.recording-inbox.plist
-   ```
-   提醒用户：Mac 需保持开机（接电源 + 系统设置里防止自动睡眠）。
+- macOS：走「macOS 部署」
+- Windows 10/11：走「Windows 部署」
+- 其他系统：先说明暂未正式支持，可参考 Python 脚本自行适配
 
-## 排错入口
+不要默认假设用户是 Mac。
 
-- 每条录音的状态：`data/tasks/<名字>/status.json`（状态机见 README「处理状态」节）
-- 运行日志：`logs/run.out.log` / `logs/run.err.log`
-- 转写失败：先看 status.json 的 `error` 字段；FunASR 装不上可改走 whisper.cpp 兜底（README 折叠节）
-- lark-cli 权限错误：重跑 `lark-cli auth login --domain drive,docs` 补授权
+## 需要用户提供/操作的事项
+
+这些必须让用户自己完成或提供，不要猜：
+
+1. 飞书扫码授权：`lark-cli auth login --domain drive,docs`
+2. 飞书 inbox 文件夹 URL 或 folder token
+3. 飞书 output 文件夹 URL 或 folder token（可选）
+4. DeepSeek API Key（可选；没有就关闭 `summary_enabled`）
+
+密钥只能写入 `.env`，不要写入 `config.json`，不要提交到 git。
+
+## macOS 部署
+
+```bash
+brew install ffmpeg node
+npm install -g @larksuite/cli
+
+python3 -m venv asr-venv
+./asr-venv/bin/pip install funasr modelscope torch torchaudio soundfile scikit-learn zhconv
+
+lark-cli auth login --domain drive,docs
+cp config.example.json config.json
+```
+
+写配置后：
+
+```bash
+python3 scripts/setup_check.py
+python3 scripts/run.py
+```
+
+试跑成功后，经用户同意再挂后台：
+
+```bash
+sed "s|/path/to/recording-inbox|$(pwd)|g" launchd/com.example.recording-inbox.plist > ~/Library/LaunchAgents/com.example.recording-inbox.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.example.recording-inbox.plist
+```
+
+提醒用户：电脑要接电源并避免自动睡眠。
+
+## Windows 10/11 部署
+
+优先阅读：`docs/setup-windows.md`
+
+最短命令：
+
+```bat
+npm install -g @larksuite/cli
+lark-cli auth login --domain drive,docs
+
+python -m venv asr-venv
+asr-venv\Scripts\pip.exe install -i https://pypi.tuna.tsinghua.edu.cn/simple funasr modelscope torch torchaudio soundfile scikit-learn zhconv imageio-ffmpeg
+
+copy config.example.json config.json
+python scripts\setup_check.py
+python scripts\run.py
+```
+
+Windows 配置建议：
+
+- `executables.funasr_python` 写 `asr-venv\\Scripts\\python.exe`
+- `executables.ffmpeg` 可以留空，程序会尝试用 `imageio-ffmpeg`
+- `executables.ffprobe` 可以留空，缺失只会警告
+- 如果任务计划里找不到 `lark-cli.cmd`，把 `executables.lark_cli` 改成绝对路径
+
+试跑成功后，经用户同意再让用户双击：
+
+```text
+windows\setup_scheduled_task.bat
+```
+
+日志：
+
+```text
+logs\run.out.log
+logs\run.err.log
+```
+
+## 手机上传说明
+
+不要把手机端讲复杂。先让用户用最简单路径跑通：
+
+- iPhone：语音备忘录 → 分享 → 飞书 → 保存到 inbox 文件夹
+- Android：系统录音机 → 分享 → 飞书 → 保存到 inbox 文件夹
+- 微信/电脑文件：下载后直接拖进飞书 inbox 文件夹
+
+更详细说明见 `docs/upload-from-phone.md`。
+
+## 验收标准
+
+部署完成前不要只停在“依赖装好了”。至少完成：
+
+1. `python scripts/setup_check.py` 通过核心检查。
+2. 用户往 inbox 上传一条 1 分钟以上音频。
+3. `python scripts/run.py` 能处理这条录音。
+4. `output/minutes/` 出现 Markdown。
+5. 如果配置了 output folder，飞书里出现智能纪要文档。
+6. `data/tasks/<录音>/status.json` 状态为 `published`。
+
+## 排错顺序
+
+1. 先看 `scripts/setup_check.py`
+2. 再看 `logs/run.err.log`
+3. 再看 `data/tasks/<录音>/status.json`
+4. lark-cli 权限问题：重跑 `lark-cli auth login --domain drive,docs`
+5. Windows 子进程弹黑框或任务计划不执行：确认使用 `run_launcher.py` + `pythonw.exe`
 
 ## 边界
 
-- 本项目不需要飞书自建应用（lark-cli 是扫码授权）；只有用户想配 iPhone 快捷指令自动上传时才需要（见 `docs/setup-feishu-app.md` 第三节）。
-- 不要替用户修改本仓库以外的任何系统配置。
-- 遇到本文没覆盖的问题，读 README 和 `docs/`，仍无解就如实告诉用户，不要瞎猜。
+- 不要提交 `.env`、`config.json`、`data/`、`logs/`、`output/`。
+- 不要替用户做付费、发布、删除云端文件等高风险操作。
+- 不要把用户的 API Key 输出到终端或文档里。
+- 修改代码后至少跑 `python -m py_compile scripts/*.py run_launcher.py`。

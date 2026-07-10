@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import platform
 import shutil
 import subprocess
 from pathlib import Path
@@ -24,8 +25,32 @@ def check(label: str, ok: bool, hint: str = "") -> bool:
     return ok
 
 
+def warn(label: str, ok: bool, hint: str = "") -> bool:
+    print(f"{OK if ok else WARN} {label}" + ("" if ok or not hint else f"\n   → {hint}"))
+    return ok
+
+
+def resolve_path(value: str) -> Path:
+    path = Path(value).expanduser()
+    return path if path.is_absolute() else ROOT / path
+
+
+def binary_exists(value: str) -> bool:
+    if not value:
+        return False
+    return bool(shutil.which(value) or resolve_path(value).is_file())
+
+
+def run_quiet(command: list[str], *, timeout: int = 30) -> subprocess.CompletedProcess[str]:
+    kwargs = {"capture_output": True, "text": True, "timeout": timeout}
+    if os.name == "nt":
+        kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    return subprocess.run(command, **kwargs)
+
+
 def main() -> int:
     print("== recording-inbox 环境自检 ==\n")
+    print(f"系统：{platform.system()} {platform.release()}\n")
     all_ok = True
 
     # 1. 配置文件
@@ -56,9 +81,7 @@ def main() -> int:
     )
     if lark_found:
         try:
-            result = subprocess.run(
-                [lark, "auth", "status"], capture_output=True, text=True, timeout=30,
-            )
+            result = run_quiet([lark, "auth", "status"], timeout=30)
             all_ok &= check(
                 "lark-cli 已登录授权", result.returncode == 0,
                 "运行 lark-cli auth login --domain drive,docs 完成授权",
@@ -67,20 +90,36 @@ def main() -> int:
             all_ok &= check("lark-cli 可执行", False, "检查安装是否完整")
 
     # 3. ffmpeg / ffprobe
-    for name in ("ffmpeg", "ffprobe"):
-        binary = str(config.get("executables", {}).get(name, "")) or name
-        all_ok &= check(
-            f"{name} 已安装", bool(shutil.which(binary) or Path(binary).expanduser().is_file()),
-            "brew install ffmpeg",
+    ffmpeg = str(config.get("executables", {}).get("ffmpeg", "")) or "ffmpeg"
+    ffmpeg_ok = binary_exists(ffmpeg)
+    if not ffmpeg_ok and os.name == "nt":
+        try:
+            import imageio_ffmpeg  # type: ignore
+            ffmpeg_ok = Path(imageio_ffmpeg.get_ffmpeg_exe()).is_file()
+        except Exception:
+            ffmpeg_ok = False
+    all_ok &= check(
+        "ffmpeg 已安装",
+        ffmpeg_ok,
+        "macOS: brew install ffmpeg；Windows: asr-venv\\Scripts\\pip install imageio-ffmpeg",
+    )
+
+    ffprobe = str(config.get("executables", {}).get("ffprobe", "")) or "ffprobe"
+    ffprobe_ok = binary_exists(ffprobe)
+    if ffprobe_ok:
+        print(f"{OK} ffprobe 已安装")
+    else:
+        warn(
+            "ffprobe 未安装（不影响转写，只会跳过精确时长预检）",
+            False,
+            "macOS 可 brew install ffmpeg；Windows 可留空或安装完整 ffmpeg 包。",
         )
 
     # 4. 转写后端：FunASR 或 whisper.cpp 至少一个
     funasr_py = str(config.get("executables", {}).get("funasr_python", "")) or "python3"
     funasr_ok = False
     try:
-        funasr_ok = subprocess.run(
-            [funasr_py, "-c", "import funasr"], capture_output=True, timeout=60,
-        ).returncode == 0
+        funasr_ok = run_quiet([funasr_py, "-c", "import funasr"], timeout=60).returncode == 0
     except (subprocess.SubprocessError, OSError):
         pass
     whisper_bin = str(config.get("executables", {}).get("whisper_cpp", ""))
