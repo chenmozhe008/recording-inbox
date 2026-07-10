@@ -20,19 +20,33 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def folder_token_from(value: str) -> str:
-    """把「飞书文件夹链接」或「folder token」统一成 folder token。
+    """把「飞书文件夹链接」统一成 API 需要的文件夹 ID。
 
     普通读者从浏览器地址栏复制的是整条链接，形如
     https://xxx.feishu.cn/drive/folder/FldbxxxxxxxxN?from=space_home ，
-    让他们自己从中抠出 token 容易出错。这里统一处理：
-    - 是链接：取 /folder/ 后面、遇到 ? # / 之前那段，就是 token；
-    - 已经是纯 token：原样返回（向后兼容旧配置）。
+    让他们自己从中抠出 ID 容易出错。这里统一处理：
+    - 是链接：取 /folder/ 后面、遇到 ? # / 之前那段；
+    - 已经是纯 ID：原样返回（向后兼容旧配置）；
+    - 含中文 = 还是 config.example.json 里的占位说明文字，视为没填。
     """
     value = value.strip()
+    if not value.isascii():
+        return ""
     match = re.search(r"/folder/([^/?#]+)", value)
     if match:
         return match.group(1)
     return value
+
+
+def configured_folder(config: dict[str, Any], name: str) -> str:
+    """读飞书文件夹配置：新字段名 feishu_<name>_folder_link 优先，
+    旧字段名 feishu_<name>_folder_token 兼容（已装好的用户不用改配置）。"""
+    raw = str(
+        config.get(f"feishu_{name}_folder_link")
+        or config.get(f"feishu_{name}_folder_token")
+        or ""
+    )
+    return folder_token_from(raw)
 
 
 def now_iso() -> str:
@@ -240,7 +254,8 @@ def notify_webhook(
     通知只是锦上添花，任何异常都不该拖垮主流程，所以整段 try/except 吞掉。
     """
     hook = str(config.get("feishu_notify_webhook", "")).strip()
-    if not hook or "填" in hook:
+    if not hook or not hook.isascii():
+        # 空或还是占位说明文字（含中文）= 没配，不发
         return
     try:
         if error:
@@ -263,7 +278,11 @@ def notify_webhook(
                 data = (doc_result or {}).get("data", {})
                 result = data.get("result", {}) if isinstance(data.get("result"), dict) else {}
                 token = str(result.get("token") or data.get("token") or "")
-                domain = re.search(r"https://[^/\s]+", str(config.get("feishu_output_folder_token", "")))
+                domain = re.search(r"https://[^/\s]+", str(
+                    config.get("feishu_output_folder_link")
+                    or config.get("feishu_output_folder_token")
+                    or ""
+                ))
                 if token and domain:
                     doc_url = f"{domain.group(0)}/docx/{token}"
             actions = []

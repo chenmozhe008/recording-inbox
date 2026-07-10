@@ -58,21 +58,32 @@
 1. 接收分享输入，类型选「文件」。
 2. 获取 URL 内容：`https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal`
    - 方法：POST
-   - 请求体 JSON：`app_id`、`app_secret`
-3. 获取词典值：`tenant_access_token`
-4. 获取文件详细信息：名称、大小
+   - 请求体选「JSON」，加两个字段（值换成你自己应用的）：
+
+     ```json
+     {
+       "app_id": "cli_xxxxxxxx",
+       "app_secret": "你的 App Secret"
+     }
+     ```
+
+3. 获取词典值：`tenant_access_token`（从上一步的结果里取）。
+4. 获取文件详细信息：名称、大小。
 5. 获取 URL 内容：`https://open.feishu.cn/open-apis/drive/v1/files/upload_all`
    - 方法：POST
-   - Header：`Authorization: Bearer tenant_access_token`
-   - 表单字段：
-     - `file_name`：文件名
+   - Header：`Authorization` = `Bearer ` + 第 3 步取到的 tenant_access_token
+   - 请求体选「表单」，字段：
+     - `file_name`：文件名（第 4 步的「名称」）
      - `parent_type`：`explorer`
-     - `parent_node`：inbox folder token
-     - `size`：文件大小
+     - `parent_node`：inbox 文件夹链接里 `/folder/` 后面那串字符（形如 `FldbxxxxxxxxN`）
+     - `size`：文件大小（第 4 步的「大小」）
      - `file`：分享输入的文件
 6. 显示通知：上传完成。
 
 不要把带 `app_secret` 的快捷指令发给别人。
+
+配置过程卡住了不用硬磕——退回上面「飞书 App 里手动上传」那条路一样能用，
+或者把本页丢给 AI 助手让它一步步带你配。
 
 ## 日常怎么判断成功
 

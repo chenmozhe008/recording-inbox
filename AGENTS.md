@@ -1,6 +1,6 @@
 # 给 AI 助手的部署指南
 
-你是 Claude Code / Codex / Cursor 这类 AI 编程助手。用户想部署 `recording-inbox`。
+你是 Claude Code / Codex / Cursor / Trae / WorkBuddy / ZCode / Hermes Agent 这类 AI 编程助手。用户想部署 `recording-inbox`。
 
 目标：让用户把录音上传到飞书 inbox 文件夹后，电脑自动拉取、转写、生成智能纪要并发布到飞书。
 
@@ -19,8 +19,8 @@
 这些必须让用户自己完成或提供，不要猜：
 
 1. 飞书扫码授权：`lark-cli auth login --domain drive,docs`
-2. 飞书 inbox 文件夹链接（整条 URL 粘进 `feishu_inbox_folder_token`，程序会自动取 token）
-3. 飞书 output 文件夹链接（可选，粘进 `feishu_output_folder_token`）
+2. 飞书 inbox 文件夹链接（整条 URL 粘进 `feishu_inbox_folder_link`；旧字段名 `feishu_inbox_folder_token` 仍兼容）
+3. 飞书 output 文件夹链接（可选，粘进 `feishu_output_folder_link`）
 4. DeepSeek API Key（可选；没有就关闭 `summary_enabled`）
 5. 飞书群机器人 webhook（可选，粘进 `feishu_notify_webhook`，转写完成/失败推卡片到群）
 
@@ -97,9 +97,11 @@ logs\run.err.log
 
 不要把手机端讲复杂。先让用户用最简单路径跑通：
 
-- iPhone：语音备忘录 → 分享 → 飞书 → 保存到 inbox 文件夹
-- Android：系统录音机 → 分享 → 飞书 → 保存到 inbox 文件夹
+- iPhone：语音备忘录 → 分享 → 存到「文件」→ 飞书 App 云空间上传进 inbox 文件夹
+- Android：飞书 App → 云空间 → inbox 文件夹 → `+` 上传录音文件
 - 微信/电脑文件：下载后直接拖进飞书 inbox 文件夹
+
+⚠️ 别教用户走手机系统的「分享 → 飞书」：那只会进聊天或妙记（消耗妙记额度），进不了云盘 inbox 文件夹。
 
 更详细说明见 `docs/upload-from-phone.md`。
 
