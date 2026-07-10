@@ -2,63 +2,55 @@
 
 # recording-inbox
 
-Record on your iPhone, and minutes later a structured meeting summary appears in your Feishu (Lark) docs. Transcription runs **entirely on your own Mac** — free, unlimited, and your audio never leaves your devices.
+Drop audio into a Feishu/Lark Drive folder. Your Mac or Windows PC transcribes it locally and publishes AI meeting notes back to Feishu/Lark.
 
+![macOS](https://img.shields.io/badge/macOS-supported-black)
+![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-blue)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+## What it does
+
+```text
+iPhone / Android / desktop audio
+        ↓ upload to Feishu Drive inbox
+Mac or Windows checks every minute
+        ↓
+Local ASR with FunASR / SenseVoice
+        ↓
+AI notes with DeepSeek or any OpenAI-compatible model
+        ↓
+Local Markdown + Feishu/Lark online doc
 ```
-iPhone recording ──share──▶ Feishu Drive inbox ──every 60s──▶ Mac pulls it
-                                                       │
-                                        Local ASR (FunASR / whisper.cpp)
-                                                       │
-                                        LLM minutes (DeepSeek, optional)
-                                                       │
-                                     Local Markdown + Feishu online doc
-```
 
-> Companion project of a Chinese blog post about building a production-grade personal tool with AI pair-programming — by a film director who doesn't code. Tutorial-grade, casually maintained.
+It is useful if you record a lot, use Feishu/Lark daily, and want unlimited local transcription without burning through Feishu Minutes quota.
 
-## Is this for you?
+## Highlights
 
-All three must be true:
-
-1. You record a lot (more than the ~300 free minutes/month Feishu Minutes gives you);
-2. You and your team live in Feishu/Lark (the minutes land there);
-3. You have a Mac that can stay awake.
-
-Missing any one? Use Feishu Minutes / Otter instead. If you don't use Feishu at all, look at [Buzz](https://github.com/chidiwilliams/buzz) or [Vibe](https://github.com/thewh1teagle/vibe) — this project's transport layer is Feishu-centric by design (swap `scripts/pull_inbox.py` if you insist).
+- Local transcription, no per-minute ASR fee.
+- macOS and Windows 10/11 support.
+- iPhone and Android friendly: any phone that can upload audio to Feishu Drive works.
+- Notes are more than transcripts: title, overview, topic outline, todos, chapters, decisions, quotes, and transcript.
+- AI-agent friendly: Claude Code / Codex / Cursor can follow `AGENTS.md` to deploy it.
 
 ## Quick start
 
-Prerequisites: an always-on Mac, [Homebrew](https://brew.sh), a Feishu account (personal is fine), and optionally a [DeepSeek](https://platform.deepseek.com) API key for AI minutes.
+The Chinese README is canonical and more complete: [README.md](README.md)
 
-```bash
-git clone https://github.com/chenmozhe008/recording-inbox.git
-cd recording-inbox
+If you use Claude Code / Codex / Cursor, give it:
 
-brew install ffmpeg node
-npm install -g @larksuite/cli
-
-# ASR in a project-local venv (~2GB incl. PyTorch; models auto-download on first run)
-python3 -m venv asr-venv
-./asr-venv/bin/pip install funasr modelscope torch torchaudio
-
-# Feishu auth (device-flow QR, no app registration needed)
-lark-cli auth login --domain drive,docs
-
-cp config.example.json config.json      # fill in your inbox folder token
-echo 'DEEPSEEK_API_KEY=sk-...' > .env   # optional
-
-python3 scripts/setup_check.py          # tells you exactly what's missing
-python3 scripts/run.py                  # process one round manually
-
-# then schedule it every 60s:
-sed "s|/path/to/recording-inbox|$(pwd)|g" launchd/com.example.recording-inbox.plist > ~/Library/LaunchAgents/com.example.recording-inbox.plist
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.example.recording-inbox.plist
+```text
+Deploy https://github.com/chenmozhe008/recording-inbox for me.
+Read AGENTS.md first, choose the macOS or Windows path based on my computer,
+and ask me only when you need Feishu auth, folder tokens, or an API key.
 ```
 
-Getting audio from iPhone into the inbox (manual share / Shortcuts automation): see `docs/upload-from-iphone.md` (Chinese).
+Manual setup:
 
-## Notes
+- macOS: see [README.md](README.md#方式-bmacos-手动安装)
+- Windows 10/11: see [docs/setup-windows.md](docs/setup-windows.md)
+- Phone upload: see [docs/upload-from-phone.md](docs/upload-from-phone.md)
 
-- Docs and code comments are Chinese-only; the Chinese `README.md` is canonical.
-- Pipeline states, retries and troubleshooting: see the Chinese README.
-- License: MIT
+## License
+
+MIT

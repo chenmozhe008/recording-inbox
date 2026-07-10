@@ -7,7 +7,9 @@ import argparse
 import json
 import os
 import re
+import shutil
 import signal
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -37,6 +39,24 @@ def to_simplified(text: str) -> str:
         return _zh_convert(text, "zh-cn")
     except Exception:
         return text
+
+
+def _resolve_ffmpeg() -> str:
+    """PATH 优先；Windows 上可回落到 imageio-ffmpeg 自带二进制。"""
+    found = shutil.which("ffmpeg")
+    if found:
+        return found
+    try:
+        import imageio_ffmpeg  # type: ignore
+        return str(imageio_ffmpeg.get_ffmpeg_exe())
+    except Exception:
+        return "ffmpeg"
+
+
+def _subprocess_kwargs(**kwargs: Any) -> dict[str, Any]:
+    if os.name == "nt":
+        kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    return kwargs
 
 # SenseVoice 原始输出带富文本标记，必须清洗成纯文本。注意这个版本的解码会把
 # 标记拆成带空格形式（如 “< | en | >”“< | S pee ch | >”），rich_transcription_postprocess
@@ -95,7 +115,8 @@ def diarize(chunks, sr, *, speaker_model: str = "iic/speech_campplus_sv_zh-cn_16
         raise DiarizationTimeout("说话人分离超时，退回单说话人")
 
     old_handler: Any = None
-    if timeout_seconds > 0:
+    has_alarm = hasattr(signal, "SIGALRM")
+    if timeout_seconds > 0 and has_alarm:
         old_handler = signal.signal(signal.SIGALRM, _timeout)
         signal.alarm(timeout_seconds)
     try:
@@ -160,7 +181,7 @@ def diarize(chunks, sr, *, speaker_model: str = "iic/speech_campplus_sv_zh-cn_16
         sys.stderr.write(f"[diarize] 失败或超时，退回单说话人：{exc}\n")
         return [1] * n
     finally:
-        if timeout_seconds > 0:
+        if timeout_seconds > 0 and has_alarm:
             signal.alarm(0)
             signal.signal(signal.SIGALRM, old_handler)
 
@@ -237,6 +258,12 @@ def normalized_segments(result: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def render_text(segments: list[dict[str, Any]]) -> str:
+    speakers = {str(item.get("speaker") or "") for item in segments}
+    if len(speakers) <= 1:
+        return "\n".join(
+            f"[{timestamp(float(item['start']))}] {item['text']}"
+            for item in segments
+        ) + "\n"
     return "\n".join(
         f"[{timestamp(float(item['start']))}] {str(item['speaker']).replace('speaker_', '说话人')}：{item['text']}"
         for item in segments
@@ -353,7 +380,6 @@ def main() -> int:
         from funasr import AutoModel
     except ImportError as exc:
         raise RuntimeError("当前 Python 环境未安装 funasr。") from exc
-    import subprocess
     import tempfile
 
     audio_path = str(Path(args.audio).expanduser().resolve())
@@ -363,8 +389,8 @@ def main() -> int:
     # 统一转 16k 单声道 wav，便于按 VAD 时间戳精确切片
     wav_path = tempfile.mktemp(suffix=".wav")
     subprocess.run(
-        ["ffmpeg", "-y", "-i", audio_path, "-ar", "16000", "-ac", "1", wav_path],
-        check=True, capture_output=True,
+        [_resolve_ffmpeg(), "-y", "-i", audio_path, "-ar", "16000", "-ac", "1", wav_path],
+        **_subprocess_kwargs(check=True, capture_output=True),
     )
 
     segments: list[dict[str, Any]] = []

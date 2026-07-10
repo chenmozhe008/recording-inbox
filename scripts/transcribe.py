@@ -22,6 +22,7 @@ from common import (
     run_command,
     update_status,
 )
+from metrics import mark_stage_started, record_stage_finished
 
 
 def audio_duration_seconds(audio_path: Path, config: dict[str, Any]) -> float | None:
@@ -143,6 +144,7 @@ def transcribe_task(task_dir: Path, config: dict[str, Any]) -> bool:
         return False
 
     update_status(task_dir, "transcribing", "正在本地转写。", duration_seconds=duration)
+    mark_stage_started(task_dir, "transcribe")
     errors: list[str] = []
     for runner in (run_funasr, run_whisper):
         try:
@@ -155,6 +157,7 @@ def transcribe_task(task_dir: Path, config: dict[str, Any]) -> bool:
                 # 主后端失败落到兜底时，把失败原因留在 status 里方便排查
                 fallback_errors=errors or None,
             )
+            record_stage_finished(task_dir, config, "transcribe", backend=backend)
             return True
         except Exception as exc:
             errors.append(f"{runner.__name__}: {exc}")

@@ -10,29 +10,113 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
 
-from common import log, update_status
+from common import atomic_write_json, log, update_status
+from metrics import mark_stage_started, record_stage_finished
 
-PROMPT_TEMPLATE = """你是一名会议纪要整理助手。下面是一段录音的逐字稿（可能有转写错误，请按上下文纠正后再理解）。
+PROMPT_TEMPLATE = """你是中文会议纪要助手，请严格对标飞书妙记「智能纪要」的风格，但保持开源版轻量、可读。
+只能根据输入内容总结，不要编造人物、日期、金额、链接、待办。
 
-请输出 Markdown 格式的纪要，结构如下：
-## 概要
-（两三句话说清这段录音在讲什么）
-## 要点
-（列点，每点一句话，按主题分组）
+{speaker_policy}
+
+请输出 Markdown，结构必须如下：
+
+# {{一句话内容标题}}
+
+## 智能纪要
+一段总览，概括整段录音围绕哪些事情展开，自然收束于「内容如下：」。
+
+## 主题大纲
+- **一级主题**
+  - **子主题**：说明这一组内容。
+    - 具体事实。保留原文里的数字、人名、机构、时间、专有名词和做法。
+- **后续工作计划**
+  - 只列录音结束后仍需要继续推进的事情；没有就写「无」。
+
 ## 待办
-（如果录音里出现了明确的行动项就列出来，没有就写「无」）
+- [ ] 只列明确行动项，尽量写清负责人/对象/完成标准。
+- 没有明确行动项就写「无」。
 
-要求：用中文；忠于原文不要脑补；标点用中文符号。
+## 智能章节
+按时间切 2-8 个章节。每章格式：
+### [00:00:00] 章节标题
+本章节用 2-4 句自然语言说明讨论了什么、结论是什么。
 
-录音标题：{title}
+## 关键决策
+没有明确决策就写「无」。有则按：
+- **决策**：
+- **背景问题**：
+- **讨论方案**：
+- **决策依据**：
+
+## 金句时刻
+无有信息量原话就写「无」。有则引用 1-3 句原话，并用一句话点评价值。
+
+写作规则：
+1. 标题是 8-20 字名词短语，必须从内容归纳，不要照抄「录音-时间」「测试录音」这类默认文件名，不要带日期。
+2. 待办只收录录音结束后仍未完成、且原文有明确证据的行动；不要推断「添加微信、拉群、发资料」等原文没说的动作。
+3. 对明显转写错误要按上下文纠正，例如 AIGC、DeepSeek、飞书、FunASR、SenseVoice、GitHub 等专名。
+4. 单人录音不要写「说话人1」；多人讨论才可以用「说话人1/说话人2」区分观点。
+5. 中文为主，夹杂英文术语时保留英文；标点用中文符号。
+
+原始文件名/标题：{title}
+
 逐字稿：
 {transcript}
 """
+
+
+def speaker_policy_text(transcript: str) -> str:
+    speakers = set(re.findall(r"(?:说话人|speaker_)\s*([0-9]+)", transcript))
+    if len(speakers) <= 1:
+        return (
+            "这是一段单人或近似单人录音。纪要、章节、待办里不要写「说话人1」"
+            "或「speaker_1」，直接用自然叙述。"
+        )
+    return (
+        "这是一段多人讨论。可以用「说话人1」「说话人2」区分观点，"
+        "但不要出现 speaker_1 这类英文标签。"
+    )
+
+
+def build_prompt(manifest: dict[str, Any], transcript: str) -> str:
+    return PROMPT_TEMPLATE.format(
+        title=str(manifest.get("title", "录音纪要")),
+        transcript=transcript,
+        speaker_policy=speaker_policy_text(transcript),
+    )
+
+
+def clean_generated_title(raw: str, fallback: str) -> str:
+    title = raw.strip().strip("#").strip()
+    title = re.sub(r"^(智能纪要|会议纪要|录音纪要|标题)\s*[：:]\s*", "", title).strip()
+    title = re.sub(r"^\d{4}[-/.年]?\d{1,2}[-/.月]?\d{1,2}[日]?\s*", "", title).strip()
+    title = re.sub(r"^录音[-_\s]*\d{4,}[-_\s]*\d{2,4}\s*", "", title).strip()
+    if not title or len(title) < 4:
+        return fallback
+    return title[:30]
+
+
+def extract_generated_title(markdown: str, fallback: str) -> str:
+    for line in markdown.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("# "):
+            return clean_generated_title(stripped[2:], fallback)
+        if stripped.startswith("标题：") or stripped.startswith("建议标题："):
+            return clean_generated_title(stripped.split("：", 1)[1], fallback)
+    return fallback
+
+
+def ensure_h1(markdown: str, title: str) -> str:
+    stripped = markdown.lstrip()
+    if stripped.startswith("# "):
+        return stripped
+    return f"# {title}\n\n{stripped}"
 
 
 def call_llm(prompt: str, config: dict[str, Any]) -> str:
@@ -44,7 +128,7 @@ def call_llm(prompt: str, config: dict[str, Any]) -> str:
     body = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 4000,
+        "max_tokens": 7000,
         "stream": False,
     }
     request = urllib.request.Request(
@@ -88,20 +172,28 @@ def generate_minutes(task_dir: Path, config: dict[str, Any]) -> bool:
         return True
 
     update_status(task_dir, "summarizing", "正在生成智能纪要。")
+    mark_stage_started(task_dir, "summary")
     try:
         summary = call_llm(
-            PROMPT_TEMPLATE.format(title=manifest["title"], transcript=transcript),
+            build_prompt(manifest, transcript),
             config,
         )
     except Exception as exc:
         update_status(task_dir, "minutes_failed", str(exc)[:300], error=str(exc)[:800])
         return False
 
+    fallback_title = str(manifest.get("title") or "录音纪要")
+    generated_title = extract_generated_title(summary, fallback_title)
+    if generated_title and generated_title != manifest.get("title"):
+        manifest = {**manifest, "original_title": manifest.get("original_title") or manifest.get("title"), "title": generated_title}
+        atomic_write_json(task_dir / "manifest.json", manifest)
+    summary = ensure_h1(summary, generated_title)
     (task_dir / "minutes.md").write_text(
-        f"# {manifest['title']}\n\n{summary}\n\n---\n\n## 逐字稿\n\n{transcript}",
+        f"{summary}\n\n---\n\n## 文字记录\n\n{transcript}",
         encoding="utf-8",
     )
-    update_status(task_dir, "minutes_ready", "纪要已生成。")
+    update_status(task_dir, "minutes_ready", "智能纪要已生成。", display_title=generated_title)
+    record_stage_finished(task_dir, config, "summary", backend=str(config.get("summary_model", "deepseek-chat")))
     return True
 
 

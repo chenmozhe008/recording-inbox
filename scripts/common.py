@@ -60,13 +60,18 @@ def run_command(
     extra_env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
     env = {**os.environ, **(extra_env or {})}
+    kwargs: dict[str, Any] = {
+        "cwd": str(cwd) if cwd else None,
+        "env": env,
+        "capture_output": True,
+        "text": True,
+        "timeout": timeout,
+    }
+    if os.name == "nt":
+        kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     result = subprocess.run(
         command,
-        cwd=str(cwd) if cwd else None,
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
+        **kwargs,
     )
     if result.returncode != 0:
         raise RuntimeError(

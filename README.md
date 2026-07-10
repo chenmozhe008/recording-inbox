@@ -1,151 +1,257 @@
 **简体中文** | [English](README.en.md)
 
-# recording-inbox — 录完就不用管的录音工作台
+# recording-inbox
 
-![macOS](https://img.shields.io/badge/platform-macOS-black) ![Python](https://img.shields.io/badge/python-3.10+-blue) ![License](https://img.shields.io/badge/license-MIT-green)
+录音丢进飞书文件夹，电脑自动转写并生成一篇像飞书妙记的智能纪要。
 
-**iPhone 随手录音，两分钟后飞书里出现一份带待办的智能纪要。** 中间发生的一切——上传、转写、总结、发布——全自动，你什么都不用做。
+![macOS](https://img.shields.io/badge/macOS-supported-black)
+![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-blue)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-- 🆓 **不限量、零转写费**——转写在你自己的 Mac 上本地跑（FunASR），录多少都不花钱，告别妙记 300 分钟/月的额度焦虑
-- 🔒 **录音不出自己的设备**——只在你的 iPhone、你的飞书云盘、你的 Mac 之间流转，不经过任何第三方转写服务器
-- 📋 **不只是逐字稿**——自动生成「概要 / 要点 / 待办」结构化纪要，带说话人分离和时间戳
-- ⚡ **安装比你想的简单**——把一句话发给 Claude Code 之类的 AI 助手，它替你装完；手动装也就 10 分钟复制粘贴
+## 这个项目解决什么问题？
 
+很多人开会、访谈、沟通都会录音，但录完之后通常卡在三件事：
+
+- 飞书妙记免费额度不够；
+- 手动上传、转写、整理纪要太麻烦；
+- 录音分散在 iPhone、Android、微信、电脑文件夹里，很难统一归档。
+
+`recording-inbox` 的思路很简单：
+
+```text
+手机录音 / 微信音频 / 电脑音频
+        ↓ 上传到飞书云盘 inbox
+Mac 或 Windows 每分钟自动检查
+        ↓
+本地 FunASR / SenseVoice 转写
+        ↓
+DeepSeek 等模型生成智能纪要
+        ↓
+本地 Markdown + 飞书在线文档
 ```
-iPhone 录音 ──分享──▶ 飞书云盘 inbox ──每分钟──▶ Mac 拉取
-                                                  │
-                                          本地转写（FunASR / whisper.cpp）
-                                                  │
-                                          LLM 智能纪要（DeepSeek，可关）
-                                                  │
-                                    本地 Markdown ＋ 飞书在线文档
-```
 
-## 🚀 安装（选一条路）
+你只需要把录音放进一个飞书文件夹，剩下的交给电脑。
 
-**方式 A · 一句话交给 AI 助手（推荐）**
+## 亮点
 
-在用 Claude Code / Codex 这类 AI 编程助手的话，新建一个空目录，把下面这句话发给它，然后按它的提示扫个码、发个文件夹链接就装完了：
+- **不限量转写**：本地开源模型转写，不消耗飞书妙记时长。
+- **跨平台**：Mac、Windows 10、Windows 11 都能跑。
+- **手机不挑**：iPhone、Android 都能用，只要能把录音上传到飞书文件夹。
+- **更像智能纪要**：不是只吐逐字稿，会生成标题、总览、主题大纲、待办、智能章节、关键决策和金句。
+- **隐私更可控**：录音在你的手机、飞书云盘、电脑之间流转；转写在本地跑。
+- **适合 AI 助手部署**：Claude Code / Codex / Cursor 可以按 `AGENTS.md` 自动帮你装。
+
+## 适合谁？
+
+适合：
+
+- 每月录音很多，飞书妙记额度不够的人；
+- 需要把会议、访谈、电话沟通整理成纪要的人；
+- 公司或团队已经在用飞书的人；
+- 愿意让一台 Mac 或 Windows 电脑保持开机处理后台任务的人。
+
+不适合：
+
+- 偶尔几条录音，直接用飞书妙记已经够的人；
+- 不用飞书的人；
+- 不想让电脑保持开机的人。
+
+## 快速开始
+
+### 方式 A：让 AI 助手帮你装（推荐）
+
+把这句话发给 Claude Code / Codex / Cursor：
 
 ```text
 帮我部署 https://github.com/chenmozhe008/recording-inbox
-克隆后按仓库里的 AGENTS.md 一步步来，需要我做的事随时问我。
+请先读 AGENTS.md，按我的电脑系统选择 macOS 或 Windows 路径。
+需要我扫码、填飞书文件夹 token、填 DeepSeek Key 时再问我。
 ```
 
-[AGENTS.md](AGENTS.md) 是专门写给 AI 看的部署手册，它知道每一步怎么做、哪些事必须找你。
+AI 助手会按系统自动走安装、自检、试跑、后台任务配置。
 
-**方式 B · 手动安装**
-
-会用终端的话照着 [下面的手动安装](#手动安装) 复制粘贴，10 分钟。
-
-## 适不适合你？
-
-同时满足这三条再装：
-
-1. **录音量大**——每月超过飞书妙记免费的 300 分钟，或者不想算账；
-2. **日常用飞书**——纪要落进飞书文档才有意义；
-3. **有一台可以常开机的 Mac**。
-
-缺任何一条：用妙记 / 通义听悟更省心。三条全中：这是目前唯一「录完不用管、不限量、进飞书」的免费方案。
-
-相比云端转写服务，它多给你两样东西：**隐私**（录音只在你的 iPhone、飞书云盘、Mac 之间流转）和**可改**（纪要提示词就在 `scripts/minutes.py`，想按你的行业黑话总结，改两行就行）。
-
-## 手动安装
-
-前置：一台**常开机**的 Mac（Apple Silicon 最佳；接电源并开「防止自动进入睡眠」）、[Homebrew](https://brew.sh)、飞书账号（个人版即可）、可选的 [DeepSeek](https://platform.deepseek.com) API key（一小时录音的纪要约几分钱）。
+### 方式 B：macOS 手动安装
 
 ```bash
-# 0. 克隆
 git clone https://github.com/chenmozhe008/recording-inbox.git
 cd recording-inbox
 
-# 1. 基础依赖
 brew install ffmpeg node
 npm install -g @larksuite/cli
 
-# 2. 转写模型（装在项目内独立 venv，不碰你的系统 Python；约 2GB，耐心等）
 python3 -m venv asr-venv
-./asr-venv/bin/pip install funasr modelscope torch torchaudio
+./asr-venv/bin/pip install funasr modelscope torch torchaudio soundfile scikit-learn zhconv
 
-# 3. 飞书授权（扫码即可，不需要建应用）+ 建 inbox 文件夹拿 token（见 docs/setup-feishu-app.md）
 lark-cli auth login --domain drive,docs
 
-# 4. 配置
-cp config.example.json config.json      # 填 inbox 文件夹 token
-echo 'DEEPSEEK_API_KEY=sk-你的key' > .env   # 不想用 LLM 可跳过，config 里关掉 summary_enabled
+cp config.example.json config.json
+# 编辑 config.json，填 feishu_inbox_folder_token / feishu_output_folder_token
+# 可选：echo 'DEEPSEEK_API_KEY=sk-你的key' > .env
 
-# 5. 自检（缺什么它会一条条告诉你）
 python3 scripts/setup_check.py
-
-# 6. 手动跑一轮试试：往 inbox 文件夹传一个音频，然后
 python3 scripts/run.py
-# 首次运行自动下载转写模型（约 1GB，国内直连，实测含下载全程约 2 分钟）
+```
 
-# 7. 跑通后挂成每分钟自动运行（一条命令，自动替换成你的路径）
+跑通后挂后台：
+
+```bash
 sed "s|/path/to/recording-inbox|$(pwd)|g" launchd/com.example.recording-inbox.plist > ~/Library/LaunchAgents/com.example.recording-inbox.plist
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.example.recording-inbox.plist
 ```
 
-<details>
-<summary>（可选）whisper.cpp 兜底后端：FunASR 装不上或英文场景多时用</summary>
+### 方式 C：Windows 10/11 手动安装
+
+看完整指南：[docs/setup-windows.md](docs/setup-windows.md)
+
+最短路径：
+
+```bat
+git clone https://github.com/chenmozhe008/recording-inbox.git
+cd recording-inbox
+
+npm install -g @larksuite/cli
+lark-cli auth login --domain drive,docs
+
+python -m venv asr-venv
+asr-venv\Scripts\pip.exe install -i https://pypi.tuna.tsinghua.edu.cn/simple funasr modelscope torch torchaudio soundfile scikit-learn zhconv imageio-ffmpeg
+
+copy config.example.json config.json
+python scripts\setup_check.py
+python scripts\run.py
+```
+
+跑通后双击：
+
+```text
+windows\setup_scheduled_task.bat
+```
+
+## 手机怎么上传录音？
+
+详细说明见：[docs/upload-from-phone.md](docs/upload-from-phone.md)
+
+| 设备 | 最简单方式 |
+|---|---|
+| iPhone | 语音备忘录 → 分享 → 飞书 → 保存到 inbox 文件夹 |
+| Android | 系统录音机 → 分享 → 飞书 → 保存到 inbox 文件夹 |
+| 微信 / 企业微信音频 | 下载到电脑 → 拖进飞书 inbox 文件夹 |
+| 电脑本地音频 | 直接拖进飞书 inbox 文件夹 |
+
+手机只负责上传；电脑负责转写、总结和发布。
+
+## 结果长什么样？
+
+生成的飞书文档会包含：
+
+```text
+智能纪要
+主题大纲
+待办
+智能章节
+关键决策
+金句时刻
+文字记录
+```
+
+标题会从录音内容归纳，不再只叫“录音-20260710-1711”。单人录音不会硬写“说话人1”；多人讨论会保留说话人编号方便区分观点。
+
+## 配置说明
+
+复制配置：
 
 ```bash
-brew install whisper-cpp
-mkdir -p models
-# 国内用镜像下载模型（约 466MB）；能翻墙可把 hf-mirror.com 换成 huggingface.co
-curl -L -o models/ggml-small.bin https://hf-mirror.com/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
+cp config.example.json config.json
 ```
 
-`config.example.json` 里 `whisper_model` 默认就是 `models/ggml-small.bin`，下载完即生效。
-</details>
+核心字段：
 
-## iPhone 端怎么把录音送进来
+| 字段 | 说明 |
+|---|---|
+| `feishu_inbox_folder_token` | 手机或电脑上传录音的飞书文件夹 |
+| `feishu_output_folder_token` | 智能纪要输出文件夹；留空则只输出本地 Markdown |
+| `summary_enabled` | 是否启用 AI 智能纪要 |
+| `summary_api_base` / `summary_model` | OpenAI 兼容模型接口，默认 DeepSeek |
+| `executables.funasr_python` | ASR 虚拟环境里的 Python |
+| `executables.ffmpeg` | ffmpeg 路径；Windows 可留空并安装 imageio-ffmpeg |
 
-三种方式按门槛从低到高，见 [docs/upload-from-iphone.md](docs/upload-from-iphone.md)：
+API Key 放 `.env`，不要写进 `config.json`：
 
-- **手动分享**（零配置）：语音备忘录录完 → 分享 → 飞书 → 存到 inbox 文件夹；
-- **快捷指令**（推荐日常）：录完分享给快捷指令，自动上传，全程不打开飞书；
-- 配套录音 App 暂未开源，本仓库链路不依赖它。
-
-## 目录结构
-
+```text
+DEEPSEEK_API_KEY=sk-你的key
 ```
+
+## 状态与排错
+
+每条录音会变成 `data/tasks/<录音名>/` 下的任务包。
+
+常用位置：
+
+```text
+data/tasks/<录音名>/status.json      单条状态
+data/tasks/<录音名>/transcript.txt   文字记录
+data/tasks/<录音名>/minutes.md       智能纪要
+output/minutes/                      本地归档
+logs/run.out.log                     后台正常日志
+logs/run.err.log                     后台错误日志
+```
+
+状态流：
+
+```text
+pending → transcribing → transcript_ready → summarizing → minutes_ready → published
+```
+
+自检：
+
+```bash
+python scripts/setup_check.py
+```
+
+手动跑一轮：
+
+```bash
+python scripts/run.py
+```
+
+## 常见问题
+
+**Q：为什么不直接用飞书妙记？**
+A：妙记很好，但免费时长有限。这个项目用本地模型转写，适合录音量大的人。
+
+**Q：Android 能用吗？**
+A：能。Android 只要能把录音上传到飞书 inbox 文件夹，后续流程完全一样。
+
+**Q：Windows 能用吗？**
+A：能。Windows 10/11 走任务计划程序，见 [docs/setup-windows.md](docs/setup-windows.md)。
+
+**Q：一定要 DeepSeek 吗？**
+A：不一定。`summary_api_base` 和 `summary_model` 支持 OpenAI 兼容接口。不用 AI 纪要也可以把 `summary_enabled` 改成 `false`。
+
+**Q：录音会不会上传到第三方转写服务？**
+A：不会。转写在本机跑。只有智能纪要阶段会把逐字稿发给你配置的 LLM 服务；不想发可以关闭 `summary_enabled`。
+
+## 项目结构
+
+```text
 scripts/
-  run.py                 主流程（拉取→转写→纪要→发布），幂等，每分钟跑一轮
-  pull_inbox.py          从飞书云盘 inbox 拉新录音，台账防重
-  transcribe.py          本地转写调度：FunASR 优先，whisper.cpp 兜底
-  transcribe_funasr.py   FunASR 转写 worker（子进程，含说话人分离）
-  minutes.py             LLM 智能纪要（Markdown 输出，提示词可改）
+  run.py                 主流程：拉取 → 转写 → 纪要 → 发布
+  pull_inbox.py          从飞书云盘 inbox 拉新录音
+  transcribe.py          转写调度：FunASR 优先，whisper.cpp 兜底
+  transcribe_funasr.py   SenseVoice 转写 worker，含说话人分离
+  minutes.py             智能纪要生成
   setup_check.py         环境自检
-  common.py              配置加载 + lark-cli 封装
-docs/                    飞书配置教程 / iPhone 上传教程
-launchd/                 macOS 定时任务模板
-data/                    运行时任务包（gitignore）
-output/minutes/          纪要 Markdown 产物（gitignore）
+  common.py              配置和 lark-cli 封装
+docs/
+  setup-windows.md       Windows 10/11 安装
+  upload-from-phone.md   iPhone / Android 上传
+launchd/                 macOS 后台任务
+windows/                 Windows 任务计划脚本
 ```
 
-## 处理状态与排错
+## Star 一下？
 
-每条录音是 `data/tasks/` 下的一个目录，`status.json` 记录进度：
+如果这个项目帮你省下了转写会员费，或者让录音整理少折腾一点，欢迎 star。
+也欢迎提 issue：最有价值的是不同电脑、不同手机、不同飞书账号环境下的安装反馈。
 
-`pending → transcribing → transcript_ready → summarizing → minutes_ready → published`
-
-失败态（`transcription_failed` / `minutes_failed` / `publish_failed`）下一轮自动重试；标了 `retryable: false` 的（比如录音太短）不再重试。卡住了就看这个文件加 `logs/run.err.log`。
-
-## FAQ
-
-**Q：为什么必须经过飞书云盘？直接 AirDrop 不行吗？**
-A：要的是「录完不用管」。飞书云盘是 iPhone 和 Mac 之间最顺手的异步管道（免费、可靠、快捷指令能自动传）；AirDrop 每次都要人工点。你也可以改 `pull_inbox.py` 换成任何你喜欢的管道（iCloud 目录、WebDAV……），主流程不关心录音从哪来。
-
-**Q：转写质量怎么样？**
-A：FunASR 的 SenseVoice 模型中文实测很强，带标点和说话人分离；英文或小语种多的场景 whisper.cpp 更稳。都是本地跑，一小时录音在 Apple Silicon 上通常十几分钟内转完。
-
-**Q：不用 DeepSeek，换别的模型行吗？**
-A：行。`config.json` 里 `summary_api_base` / `summary_model` 是任何 OpenAI 兼容接口都能填的，key 写在 `.env`。
-
-**Q：作者自己用的版本和这个有什么区别？**
-A：作者的私人版本在这条链路之后还有一大截：纪要自动提取待办、飞书卡片确认、AI 自动执行任务、结果审过闭环、台账看板。那些和个人工作流耦合太深，不适合开源。这个仓库是其中「人人用得上」的部分。
-
----
-
-> 本项目是一篇公众号文章的配套仓库（文章链接见仓库简介），定位「一个周末能跑通的教程项目」，不承诺长期维护，issue 随缘。License: MIT
+License: MIT
