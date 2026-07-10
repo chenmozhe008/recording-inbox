@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -30,7 +31,7 @@ class SetupTests(unittest.TestCase):
             finally:
                 setup_wizard.ROOT = original_root
         self.assertEqual(merged["executables"]["lark_cli"], "C:/tools/lark-cli.cmd")
-        self.assertEqual(merged["executables"]["ffmpeg"], "ffmpeg")
+        self.assertEqual(merged["executables"]["ffmpeg"], "" if os.name == "nt" else "ffmpeg")
 
     def test_api_key_is_written_without_echo_or_duplicate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

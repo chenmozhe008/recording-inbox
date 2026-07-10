@@ -12,12 +12,29 @@ import json
 import os
 import re
 import subprocess
+import sys
 import urllib.request
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def configure_utf8_console() -> None:
+    """Windows 的旧控制台编码可能无法输出中文，不能让日志反过来打断任务。"""
+    if os.name != "nt":
+        return
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            try:
+                reconfigure(encoding="utf-8", errors="replace")
+            except (OSError, ValueError):
+                pass
+
+
+configure_utf8_console()
 
 
 def folder_token_from(value: str) -> str:
