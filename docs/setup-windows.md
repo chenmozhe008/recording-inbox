@@ -52,7 +52,7 @@ asr-venv\Scripts\pip.exe install -i https://pypi.tuna.tsinghua.edu.cn/simple fun
 - `recording-inbox`：手机上传录音的入口。
 - `recording-minutes`：智能纪要输出位置，可选。
 
-打开文件夹，把浏览器地址栏那条链接整条复制下来，写进配置（程序会自动从链接里取 token）：
+打开文件夹，把浏览器地址栏那条链接整条复制下来，写进配置（直接粘整条链接就行，程序自己会处理）：
 
 ```bat
 copy config.example.json config.json
@@ -63,8 +63,8 @@ Windows 推荐这样写：
 
 ```json
 {
-  "feishu_inbox_folder_token": "粘贴你的 inbox 文件夹链接",
-  "feishu_output_folder_token": "粘贴你的 output 文件夹链接，留空则只生成本地 Markdown",
+  "feishu_inbox_folder_link": "粘贴你的 inbox 文件夹链接",
+  "feishu_output_folder_link": "粘贴你的 output 文件夹链接，留空则只生成本地 Markdown",
   "work_dir": "data",
   "output_dir": "output/minutes",
   "summary_enabled": true,
@@ -132,7 +132,7 @@ python scripts\run.py
 windows\setup_scheduled_task.bat
 ```
 
-它会注册一个名为 `recording-inbox` 的 Windows 任务计划，每分钟静默运行一次。
+它会注册一个名为 `recording-inbox` 的 Windows 任务计划，每分钟静默运行一次（内部通过 `run_launcher.py` 无窗口地调 `scripts\run.py`，排查问题时知道这一点就够）。
 
 查看日志：
 
@@ -156,4 +156,4 @@ windows\remove_scheduled_task.bat
 | ffprobe 警告 | 可忽略，只影响时长预检 |
 | 定时任务没反应 | 看 `logs/run.err.log`；确认电脑没有睡眠 |
 | lark-cli 未授权 | 重新运行 `lark-cli auth login --domain drive,docs` |
-| 飞书没有输出文档 | 检查 `feishu_output_folder_token` 是否填写、账号是否有文件夹权限 |
+| 飞书没有输出文档 | 检查 `feishu_output_folder_link` 是否填写、账号是否有文件夹权限 |

@@ -23,10 +23,9 @@ lark-cli auth status
 1. 打开飞书网页版 → 云文档 → 云盘，新建一个文件夹，比如叫 `录音inbox`；
 2. 打开这个文件夹，直接复制浏览器地址栏那条链接，形如
    `https://xxx.feishu.cn/drive/folder/FldbxxxxxxxxxxxxxxxxxxxN`；
-3. 整条链接粘进 `config.json` 的 `feishu_inbox_folder_token` 就行——
-   程序会自动从链接里取出文件夹 token（也兼容你直接填链接最后那串 token）。
+3. 整条链接粘进 `config.json` 的 `feishu_inbox_folder_link` 就行，程序自己会处理。
 
-想让纪要也发成飞书在线文档的话，再建一个输出文件夹（比如 `会议纪要`），同样把链接粘进 `feishu_output_folder_token`。留空则只出本地 Markdown。
+想让纪要也发成飞书在线文档的话，再建一个输出文件夹（比如 `会议纪要`），同样把链接粘进 `feishu_output_folder_link`。留空则只出本地 Markdown。
 
 ## 三、自建应用（只有快捷指令自动上传才需要）
 

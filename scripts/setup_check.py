@@ -66,9 +66,9 @@ def main() -> int:
             config = json.loads(config_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as exc:
             all_ok &= check("config.json 是合法 JSON", False, f"JSON 语法错误：{exc}")
-        inbox = str(config.get("feishu_inbox_folder_token", ""))
+        inbox = str(config.get("feishu_inbox_folder_link") or config.get("feishu_inbox_folder_token") or "")
         all_ok &= check(
-            "已填 feishu_inbox_folder_token", bool(inbox) and "填" not in inbox,
+            "已填 feishu_inbox_folder_link（inbox 文件夹链接）", bool(inbox) and inbox.isascii(),
             "把飞书 inbox 文件夹链接贴进 config.json（见 docs/setup-feishu-app.md）",
         )
 

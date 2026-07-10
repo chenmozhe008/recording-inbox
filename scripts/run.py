@@ -3,7 +3,7 @@
 
 - launchd/cron 每分钟调一次即可（见 launchd/ 目录模板）；
 - 用锁文件防止上一轮还没跑完又起一轮（长录音转写可能几十分钟）；
-- 发布 = 本地 Markdown（必出）+ 飞书在线文档（配了 feishu_output_folder_token 才发）。
+- 发布 = 本地 Markdown（必出）+ 飞书在线文档（配了 feishu_output_folder_link 才发）。
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from common import (
-    folder_token_from,
+    configured_folder,
     import_markdown_as_docx,
     load_config,
     log,
@@ -61,9 +61,9 @@ def publish_task(task_dir: Path, config: dict[str, Any]) -> bool:
     shutil.copyfile(minutes_path, local_path)
 
     # 2) 飞书在线文档（可选）
-    folder_token = folder_token_from(str(config.get("feishu_output_folder_token", "")))
+    folder_token = configured_folder(config, "output")
     doc_result: dict[str, Any] = {}
-    if folder_token and "填" not in folder_token and "留空" not in folder_token:
+    if folder_token:
         try:
             doc_result = import_markdown_as_docx(
                 config, minutes_path, f"{day} {manifest['title']}", folder_token,

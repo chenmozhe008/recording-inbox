@@ -3,8 +3,9 @@
 <plist version="1.0">
 <dict>
   <!--
-    每 60 秒跑一轮主流程。安装方法（把下面两处 /path/to/recording-inbox 换成你的实际路径）：
-      cp launchd/com.example.recording-inbox.plist ~/Library/LaunchAgents/
+    每 60 秒跑一轮主流程。安装方法：在项目根目录执行下面两行，
+    sed 会自动把本文件里所有 /path/to/recording-inbox 替换成你的实际路径：
+      sed "s|/path/to/recording-inbox|$(pwd)|g" launchd/com.example.recording-inbox.plist > ~/Library/LaunchAgents/com.example.recording-inbox.plist
       launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.example.recording-inbox.plist
     卸载：
       launchctl bootout gui/$(id -u)/com.example.recording-inbox

@@ -61,7 +61,7 @@ DeepSeek 等模型生成智能纪要
 
 ### 方式 A：让 AI 助手帮你装（推荐）
 
-把这句话发给 Claude Code / Codex / Cursor：
+把这句话发给你在用的 AI 编程助手——Claude Code、Codex、Cursor，或者国产的 Trae、WorkBuddy、ZCode，以及 Hermes Agent 这类开源 Agent 都可以：
 
 ```text
 帮我部署 https://github.com/chenmozhe008/recording-inbox
@@ -72,6 +72,8 @@ DeepSeek 等模型生成智能纪要
 AI 助手会按系统自动走安装、自检、试跑、后台任务配置。
 
 ### 方式 B：macOS 手动安装
+
+前置：需要 [Homebrew](https://brew.sh)（官网首页一行命令可装）；macOS 自带 python3 即可。
 
 ```bash
 git clone https://github.com/chenmozhe008/recording-inbox.git
@@ -86,7 +88,8 @@ python3 -m venv asr-venv
 lark-cli auth login --domain drive,docs
 
 cp config.example.json config.json
-# 编辑 config.json，把飞书 inbox / output 文件夹链接贴进对应字段
+# 编辑 config.json：inbox 文件夹链接贴进 feishu_inbox_folder_link，
+# 纪要输出文件夹链接贴进 feishu_output_folder_link（可留空）
 # 可选：echo 'DEEPSEEK_API_KEY=sk-你的key' > .env
 
 python3 scripts/setup_check.py
@@ -133,10 +136,12 @@ windows\setup_scheduled_task.bat
 
 | 设备 | 最简单方式 |
 |---|---|
-| iPhone | 语音备忘录 → 分享 → 飞书 → 保存到 inbox 文件夹 |
-| Android | 系统录音机 → 分享 → 飞书 → 保存到 inbox 文件夹 |
+| iPhone | 语音备忘录 → 分享 → 存到「文件」→ 飞书 App 云空间里传进 inbox 文件夹（每天录的配快捷指令，分享一下自动传） |
+| Android | 飞书 App → 云空间 → inbox 文件夹 → `+` 上传录音文件 |
 | 微信 / 企业微信音频 | 下载到电脑 → 拖进飞书 inbox 文件夹 |
 | 电脑本地音频 | 直接拖进飞书 inbox 文件夹 |
+
+> 注意：手机系统的「分享 → 飞书」只会进聊天或妙记（还消耗妙记额度），**进不了** inbox 文件夹，别走那条路。
 
 手机只负责上传；电脑负责转写、总结和发布。
 
@@ -168,9 +173,9 @@ cp config.example.json config.json
 
 | 字段 | 说明 |
 |---|---|
-| `feishu_inbox_folder_token` | 手机或电脑上传录音的飞书文件夹；**贴文件夹链接即可**（也兼容填 token） |
-| `feishu_output_folder_token` | 智能纪要输出文件夹，贴链接即可；留空则只输出本地 Markdown |
-| `feishu_notify_webhook` | 选填：飞书群自定义机器人 webhook，填了就在转写完成/失败时推卡片到群 |
+| `feishu_inbox_folder_link` | 上传录音的飞书文件夹**链接**，浏览器地址栏整条粘进来 |
+| `feishu_output_folder_link` | 智能纪要输出文件夹链接；留空则只输出本地 Markdown |
+| `feishu_notify_webhook` | 选填：飞书群机器人 webhook 地址，配好后转写完成/失败会推卡片到群 |
 | `summary_enabled` | 是否启用 AI 智能纪要 |
 | `summary_api_base` / `summary_model` | OpenAI 兼容模型接口，默认 DeepSeek |
 | `executables.funasr_python` | ASR 虚拟环境里的 Python |
@@ -202,6 +207,8 @@ logs/run.err.log                     后台错误日志
 ```text
 pending → transcribing → transcript_ready → summarizing → minutes_ready → published
 ```
+
+中间任何一步失败会标成 `*_failed`，后台下一轮自动重试（配了群通知的话，同一个失败只会收到一次告警，不会刷屏）。
 
 自检：
 
@@ -250,9 +257,12 @@ launchd/                 macOS 后台任务
 windows/                 Windows 任务计划脚本
 ```
 
-## Star 一下？
+## 支持一下
 
-如果这个项目帮你省下了转写会员费，或者让录音整理少折腾一点，欢迎 star。
-也欢迎提 issue：最有价值的是不同电脑、不同手机、不同飞书账号环境下的安装反馈。
+如果这个项目帮你省下了转写会员费，或者让录音整理少折腾一点，欢迎点个 ⭐ Star，让更多人看到它。
 
-License: MIT
+遇到问题请提 [Issue](../../issues)——不同电脑、不同手机、不同飞书账号环境下的安装反馈最有价值。
+
+## License
+
+MIT

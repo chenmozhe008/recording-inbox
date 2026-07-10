@@ -31,13 +31,13 @@ It is useful if you record a lot, use Feishu/Lark daily, and want unlimited loca
 - macOS and Windows 10/11 support.
 - iPhone and Android friendly: any phone that can upload audio to Feishu Drive works.
 - Notes are more than transcripts: title, overview, topic outline, todos, chapters, decisions, quotes, and transcript.
-- AI-agent friendly: Claude Code / Codex / Cursor can follow `AGENTS.md` to deploy it.
+- AI-agent friendly: Claude Code / Codex / Cursor / Trae / WorkBuddy / ZCode / Hermes Agent can follow `AGENTS.md` to deploy it.
 
 ## Quick start
 
 The Chinese README is canonical and more complete: [README.md](README.md)
 
-If you use Claude Code / Codex / Cursor, give it:
+If you use an AI coding agent (Claude Code, Codex, Cursor, Trae, WorkBuddy, ZCode, Hermes Agent, ...), give it:
 
 ```text
 Deploy https://github.com/chenmozhe008/recording-inbox for me.
