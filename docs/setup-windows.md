@@ -27,7 +27,7 @@ lark-cli auth login --domain drive,docs
 lark-cli auth status
 ```
 
-如果后面定时任务里找不到 `lark-cli.cmd`，把 `config.json` 里的 `executables.lark_cli` 改成它的绝对路径，例如：
+如果后面定时任务里找不到 `lark-cli.cmd`，把 `config.json` 里的 `executables.lark_cli` 改成它的绝对路径（在 PowerShell 里运行 `where.exe lark-cli.cmd` 就能看到），例如：
 
 ```json
 "lark_cli": "C:\\Users\\你\\AppData\\Roaming\\npm\\lark-cli.cmd"
