@@ -120,6 +120,9 @@ python -m venv asr-venv
 asr-venv\Scripts\pip.exe install -i https://pypi.tuna.tsinghua.edu.cn/simple funasr modelscope torch torchaudio soundfile scikit-learn zhconv imageio-ffmpeg
 
 copy config.example.json config.json
+notepad config.json
+REM 把 inbox / output 文件夹链接贴进 feishu_inbox_folder_link / feishu_output_folder_link
+
 python scripts\setup_check.py
 python scripts\run.py
 ```
