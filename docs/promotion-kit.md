@@ -2,6 +2,18 @@
 
 这是一套可以直接复制、按真实体验微调后发布的素材。仓库不会自动登录或向任何平台发帖；正式发布前，发布者需要检查账号、链接、截图和措辞。
 
+## 已完成的公开发布
+
+以下入口已经真实发布，不要重复投稿：
+
+- [GitHub v0.1.0 Release](https://github.com/chenmozhe008/recording-inbox/releases/tag/v0.1.0)；
+- [独立项目页](https://chenmozhe008.github.io/recording-inbox/)；
+- [GitHubDaily 项目推荐 #937](https://github.com/GitHubDaily/GitHubDaily/issues/937)；
+- [HelloGitHub 开源推荐 #3431](https://github.com/521xueweihan/HelloGitHub/issues/3431)；
+- [阮一峰科技爱好者周刊投稿 #10668](https://github.com/ruanyf/weekly/issues/10668)。
+
+小红书和公众号由项目作者自行发布，本仓库只保留可复用素材。
+
 ## 先统一一句话
 
 把手机或电脑里的录音上传到飞书云盘，Mac 或 Windows 自动本地转写、生成智能纪要，并把文档和完成通知送回飞书。

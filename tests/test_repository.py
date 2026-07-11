@@ -93,6 +93,14 @@ class RepositoryTests(unittest.TestCase):
         robots = (ROOT / "docs" / "robots.txt").read_text(encoding="utf-8")
         self.assertIn("https://chenmozhe008.github.io/recording-inbox/sitemap.xml", robots)
 
+        promotion = (ROOT / "docs" / "promotion-kit.md").read_text(encoding="utf-8")
+        for public_submission in (
+            "https://github.com/GitHubDaily/GitHubDaily/issues/937",
+            "https://github.com/521xueweihan/HelloGitHub/issues/3431",
+            "https://github.com/ruanyf/weekly/issues/10668",
+        ):
+            self.assertIn(public_submission, promotion, f"推广记录缺少公开投稿：{public_submission}")
+
     def test_structured_project_metadata_is_valid_json(self) -> None:
         head = (ROOT / "docs" / "_includes" / "head-custom.html").read_text(encoding="utf-8")
         match = re.search(
