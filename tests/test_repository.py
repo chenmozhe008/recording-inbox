@@ -67,6 +67,7 @@ class RepositoryTests(unittest.TestCase):
             "docs/index.md",
             "docs/faq.md",
             "docs/robots.txt",
+            "docs/indexnow-4f9b99d47fb3f1286004a87f75b94062.txt",
             "docs/_config.yml",
             "docs/_includes/head-custom.html",
         ]
@@ -92,6 +93,10 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("jekyll-sitemap", config)
         robots = (ROOT / "docs" / "robots.txt").read_text(encoding="utf-8")
         self.assertIn("https://chenmozhe008.github.io/recording-inbox/sitemap.xml", robots)
+        indexnow_key = (ROOT / "docs" / "indexnow-4f9b99d47fb3f1286004a87f75b94062.txt").read_text(
+            encoding="utf-8"
+        ).strip()
+        self.assertEqual(indexnow_key, "4f9b99d47fb3f1286004a87f75b94062")
 
         promotion = (ROOT / "docs" / "promotion-kit.md").read_text(encoding="utf-8")
         for public_submission in (
