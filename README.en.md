@@ -1,8 +1,8 @@
 [简体中文](README.md) | **English**
 
-# recording-inbox - upload a recording, let the workflow finish it
+# recording-inbox - open-source AI recording workflow
 
-Drop audio into a Feishu/Lark Drive folder. A Mac or Windows PC transcribes it locally, creates structured AI notes, publishes a Feishu/Lark document, and sends you the result.
+Upload a recording and let the workflow finish it: audio from a phone or computer enters Feishu/Lark Drive, then a Mac or Windows PC runs local speech-to-text, creates structured AI meeting notes, publishes a document, and sends you the result.
 
 [![macOS](https://img.shields.io/badge/macOS-supported-black)](docs/setup-macos.md)
 [![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-blue)](docs/setup-windows.md)
@@ -74,6 +74,8 @@ Manual guides:
 - [Windows 10/11](docs/setup-windows.md)
 - [Phone and desktop upload](docs/upload-from-phone.md)
 - [Validation matrix](docs/validation.md)
+- [FAQ](docs/faq.md)
+- [Project landing page](https://chenmozhe008.github.io/recording-inbox/)
 
 Feishu's mobile UI changes over time. This repository does not treat a macOS Feishu bundle copied into iOS Simulator as mobile validation. Maintainers should use the [real-device recording checklist](docs/mobile-demo-checklist.md) when refreshing tutorial media.
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import unittest
@@ -56,6 +57,54 @@ class RepositoryTests(unittest.TestCase):
         text = (ROOT / "launchd" / "com.example.recording-inbox.plist").read_text(encoding="utf-8")
         self.assertIn("/path/to/recording-inbox/asr-venv/bin/python", text)
         self.assertNotIn("<string>/usr/bin/python3</string>", text)
+
+    def test_public_discovery_entrypoints_are_consistent(self) -> None:
+        required = [
+            "README.md",
+            "README.en.md",
+            "llms.txt",
+            "docs/llms.txt",
+            "docs/index.md",
+            "docs/faq.md",
+            "docs/robots.txt",
+            "docs/_config.yml",
+            "docs/_includes/head-custom.html",
+        ]
+        for relative in required:
+            self.assertTrue((ROOT / relative).is_file(), f"缺少公开发现入口：{relative}")
+
+        root_llms = (ROOT / "llms.txt").read_text(encoding="utf-8")
+        pages_llms = (ROOT / "docs" / "llms.txt").read_text(encoding="utf-8")
+        self.assertEqual(root_llms, pages_llms, "仓库与项目页的 llms.txt 内容不一致")
+        self.assertIn("Canonical project URL: https://github.com/chenmozhe008/recording-inbox", root_llms)
+        self.assertNotRegex(root_llms, r"\]\((?!https://)[^)]+\)")
+
+        public_text = "\n".join(
+            (ROOT / relative).read_text(encoding="utf-8")
+            for relative in ("README.md", "docs/index.md", "docs/faq.md", "llms.txt")
+        )
+        for phrase in ("AI 录音工作流", "录音转文字", "自动会议纪要", "本地转写", "FunASR"):
+            self.assertIn(phrase, public_text, f"公开入口缺少核心检索语义：{phrase}")
+
+        config = (ROOT / "docs" / "_config.yml").read_text(encoding="utf-8")
+        self.assertIn("baseurl: /recording-inbox", config)
+        self.assertIn("jekyll-seo-tag", config)
+        self.assertIn("jekyll-sitemap", config)
+        robots = (ROOT / "docs" / "robots.txt").read_text(encoding="utf-8")
+        self.assertIn("https://chenmozhe008.github.io/recording-inbox/sitemap.xml", robots)
+
+    def test_structured_project_metadata_is_valid_json(self) -> None:
+        head = (ROOT / "docs" / "_includes" / "head-custom.html").read_text(encoding="utf-8")
+        match = re.search(
+            r'<script type="application/ld\+json">\s*(.*?)\s*</script>',
+            head,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(match, "缺少 JSON-LD 软件项目信息")
+        payload = json.loads(match.group(1))
+        self.assertEqual(payload["@type"], "SoftwareSourceCode")
+        self.assertEqual(payload["codeRepository"], "https://github.com/chenmozhe008/recording-inbox")
+        self.assertEqual(payload["softwareVersion"], "0.1.0")
 
 
 if __name__ == "__main__":
