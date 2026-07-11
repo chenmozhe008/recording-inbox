@@ -38,6 +38,7 @@ Manual guides:
 - [macOS](docs/setup-macos.md)
 - [Windows 10/11](docs/setup-windows.md)
 - [Phone and desktop upload](docs/upload-from-phone.md)
+- [Validation matrix](docs/validation.md)
 
 Feishu's mobile UI changes over time. This repository does not treat a macOS Feishu bundle copied into iOS Simulator as mobile validation. Maintainers should use the [real-device recording checklist](docs/mobile-demo-checklist.md) when refreshing tutorial media.
 
