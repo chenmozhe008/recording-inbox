@@ -1,8 +1,8 @@
 **简体中文** | [English](README.en.md)
 
-# recording-inbox - 录完上传，剩下不用管
+# recording-inbox - 开源 AI 录音工作流
 
-把手机或电脑里的录音放进飞书云盘，Mac 或 Windows 自动完成本地转写、智能纪要、飞书归档和结果通知。
+录完上传，剩下不用管：把手机或电脑里的录音放进飞书云盘，Mac 或 Windows 自动完成录音转文字、本地转写、AI 智能纪要、飞书归档和结果通知。
 
 [![macOS](https://img.shields.io/badge/macOS-supported-black)](docs/setup-macos.md)
 [![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-blue)](docs/setup-windows.md)
@@ -15,7 +15,7 @@
 
 录音本身很容易，真正费时间的是录完以后：上传到不同工具、等待转写、整理重点、提取待办、重新命名，再把结果放回团队正在使用的地方。
 
-`recording-inbox` 把这些重复动作连成一条可以长期运行的流水线。你只负责录音和上传，电脑负责后面的处理；完成后，结果仍然回到飞书，而不是散落在另一个临时工具里。
+`recording-inbox` 不是单独的语音转文字脚本，而是一套可以长期运行的 AI 录音工作流。你只负责录音和上传，电脑负责转写、会议录音自动总结、提取待办和归档；完成后，结果仍然回到飞书，而不是散落在另一个临时工具里。
 
 ## 核心优势
 
@@ -201,8 +201,10 @@ python scripts/setup_check.py
 - [验证矩阵](docs/validation.md)
 - [纪要模板](prompts/README.md)
 - [结果示例](examples/sample-minutes.md)
+- [AI 录音工作流常见问题](docs/faq.md)
 - [演示录屏脚本](docs/demo-script.md)
 - [推广与分享素材](docs/promotion-kit.md)
+- [独立项目页](https://chenmozhe008.github.io/recording-inbox/)
 
 ## 项目边界
 

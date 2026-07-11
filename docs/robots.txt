@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://chenmozhe008.github.io/recording-inbox/sitemap.xml

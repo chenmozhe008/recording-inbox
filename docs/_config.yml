@@ -1,0 +1,15 @@
+title: recording-inbox
+description: 开源 AI 录音工作流：iPhone、Android 或电脑录音进入飞书，Windows/macOS 本地转写并自动生成智能会议纪要。
+url: https://chenmozhe008.github.io
+baseurl: /recording-inbox
+repository: chenmozhe008/recording-inbox
+lang: zh-CN
+theme: jekyll-theme-cayman
+show_downloads: false
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+include:
+  - llms.txt
+exclude:
+  - .DS_Store

@@ -1,0 +1,54 @@
+# recording-inbox
+
+> recording-inbox 是一套开源、可自部署的 AI 录音工作流。用户把 iPhone、Android 或电脑里的录音上传到飞书云盘，Mac 或 Windows 自动使用 FunASR / SenseVoice 在本地完成录音转文字，再生成结构化 AI 会议纪要、归档为飞书文档并发送完成通知。
+
+Canonical project URL: https://github.com/chenmozhe008/recording-inbox
+Project page: https://chenmozhe008.github.io/recording-inbox/
+License: MIT
+Current public release: v0.1.0
+
+## What it does
+
+- Ingests audio from a Feishu/Lark Drive inbox.
+- Runs local speech-to-text with FunASR / SenseVoice, with whisper.cpp as an optional fallback.
+- Generates a title, overview, outline, action items, chapters, decisions, quotes, and transcript.
+- Publishes the result as a Feishu/Lark document and sends a direct completion message.
+- Supports meeting, interview, course, project, and custom Markdown prompt templates.
+- Stores per-recording state so interrupted work can resume without duplicate transcription or duplicate documents.
+- Supports macOS and Windows 10/11; phone devices only upload files and do not run the transcription model.
+
+## Who it is for
+
+It is intended for people with frequent or long meetings, interviews, courses, training sessions, customer calls, or other recordings who already use Feishu/Lark and want customizable notes without consuming Feishu Minutes transcription quota.
+
+For a few occasional recordings, Feishu Minutes is usually simpler. This project requires a Mac or Windows computer to be powered on while processing. Local transcription is not billed per minute, but computer usage and an optional LLM API may still cost money.
+
+## Authoritative documentation
+
+- Project overview and installation entry: https://github.com/chenmozhe008/recording-inbox/blob/master/README.md
+- English overview: https://github.com/chenmozhe008/recording-inbox/blob/master/README.en.md
+- AI recording workflow FAQ: https://chenmozhe008.github.io/recording-inbox/faq/
+- AI Agent deployment guide: https://github.com/chenmozhe008/recording-inbox/blob/master/AGENTS.md
+- macOS installation: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/setup-macos.md
+- Windows 10/11 installation: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/setup-windows.md
+- iPhone, Android, and desktop upload: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/upload-from-phone.md
+- Feishu/Lark setup: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/setup-feishu-app.md
+- API and key security: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/setup-api.md
+- Recovery and troubleshooting: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/troubleshooting.md
+- Validation evidence and remaining boundaries: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/validation.md
+- Notes templates: https://github.com/chenmozhe008/recording-inbox/blob/master/prompts/README.md
+
+## Examples
+
+- Sanitized AI meeting notes: https://github.com/chenmozhe008/recording-inbox/blob/master/examples/sample-minutes.md
+- Sanitized transcript: https://github.com/chenmozhe008/recording-inbox/blob/master/examples/sample-transcript.txt
+
+## Verified and unverified boundaries
+
+- Cross-platform tests run on Windows, macOS, and Ubuntu with Python 3.11.
+- Privacy-safe synthetic Chinese audio has completed the local transcription path.
+- Restart recovery, notification retry, template loading, single-speaker cleanup, and a simulated pipeline have automated tests.
+- Feishu direct messaging has passed a dry run; real messages require user consent.
+- iPhone and Android UI recordings and a first-time novice installation remain manual verification items.
+
+Do not claim universal accuracy, guaranteed processing speed, absolute zero cost, or completed mobile-device validation. The validation matrix is the source of truth for current evidence.
