@@ -156,6 +156,7 @@ python scripts/setup_check.py
 - [iPhone / Android / 电脑上传](docs/upload-from-phone.md)
 - [DeepSeek API 与 Key](docs/setup-api.md)
 - [故障恢复](docs/troubleshooting.md)
+- [验证矩阵](docs/validation.md)
 - [纪要模板](prompts/README.md)
 - [结果示例](examples/sample-minutes.md)
 
