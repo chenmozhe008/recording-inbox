@@ -1,15 +1,43 @@
 **简体中文** | [English](README.en.md)
 
-# recording-inbox
+# recording-inbox - 录完上传，剩下不用管
 
-把录音放进飞书文件夹，电脑自动完成本地转写、智能纪要、飞书归档和结果通知。
+把手机或电脑里的录音放进飞书云盘，Mac 或 Windows 自动完成本地转写、智能纪要、飞书归档和结果通知。
 
 [![macOS](https://img.shields.io/badge/macOS-supported-black)](docs/setup-macos.md)
 [![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-blue)](docs/setup-windows.md)
 [![CI](https://github.com/chenmozhe008/recording-inbox/actions/workflows/ci.yml/badge.svg)](https://github.com/chenmozhe008/recording-inbox/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-适合会议、采访、课程、客户沟通等大量长录音。转写在自己的 Mac 或 Windows 电脑上运行，不按分钟收费；纪要可以选择会议、访谈、课程、项目模板，也可以直接改提示词。
+适合会议、采访、课程、客户沟通等大量长录音。你不用再逐条下载、转写、复制、整理和归档，也不用一直盯着处理进度。
+
+## 为什么会需要它？
+
+录音本身很容易，真正费时间的是录完以后：上传到不同工具、等待转写、整理重点、提取待办、重新命名，再把结果放回团队正在使用的地方。
+
+`recording-inbox` 把这些重复动作连成一条可以长期运行的流水线。你只负责录音和上传，电脑负责后面的处理；完成后，结果仍然回到飞书，而不是散落在另一个临时工具里。
+
+## 核心优势
+
+| 优势 | 对你有什么用 |
+|---|---|
+| 本地开源转写 | FunASR / SenseVoice 在自己的电脑上运行，不消耗飞书妙记转写分钟数，适合大量、长期和长录音 |
+| 不只是逐字稿 | 自动生成标题、总览、主题大纲、待办、章节、关键决策和文字记录 |
+| 手机和电脑统一入口 | iPhone、Android、微信下载音频和电脑文件都进入同一个飞书 inbox |
+| 纪要可以按工作改 | 内置会议、访谈、课程、项目沟通模板，也可以直接修改提示词和行业术语 |
+| 关机重启能续跑 | 电脑临时关机、程序中断或通知失败后，会从已有阶段继续，避免重复转写和重复建文档 |
+| 隐私和费用更可控 | 音频转写不交给第三方转写服务；只有启用 AI 纪要时，文字才会发送给你选择的模型 API |
+| 普通用户也能部署 | 支持 macOS、Windows 10/11，可让 Codex、Claude Code 或 Cursor 按部署手册代为安装和自检 |
+
+本地转写不按分钟收费，但电脑运行、电力以及可选的 AI 纪要 API 仍可能产生少量成本。本项目强调的是可控和可持续，不宣传无法保证的“绝对零成本”。
+
+## 适合这些场景
+
+- 每天会议很多，希望录完自动形成结构化纪要；
+- 采访、调研和客户沟通时间长，人工整理成本高；
+- 课程、培训、直播或播客录音需要持续沉淀为文字资料；
+- 团队已经使用飞书，希望上传、通知、文档和后续协作都留在飞书；
+- 对纪要格式、行业术语和待办提取有自己的要求，不想被固定模板限制。
 
 ## 30 秒看懂
 
@@ -27,12 +55,13 @@ flowchart LR
 
 ## 它和飞书妙记怎么选？
 
-| 你的情况 | 更合适的选择 |
-|---|---|
-| 偶尔转几条，希望一步完成 | 先用飞书妙记 |
-| 长录音多，免费额度不够 | recording-inbox |
-| 想自定义纪要结构和行业术语 | recording-inbox |
-| 不使用飞书 | 这个项目不适合 |
+| 你的情况 | 更合适的选择 | 原因 |
+|---|---|---|
+| 偶尔转几条，希望手机里一步完成 | 飞书妙记 | 原生体验更省事，不值得为少量录音部署电脑端服务 |
+| 长录音多，转写额度经常不够 | recording-inbox | 本地转写不消耗妙记分钟数，可持续批量处理 |
+| 想自定义纪要结构和行业术语 | recording-inbox | 模板和提示词由自己控制 |
+| 需要关机后继续、失败后重试 | recording-inbox | 每条录音都有独立任务状态和恢复机制 |
+| 不使用飞书 | 其他工具 | 本项目把飞书作为上传、归档和通知入口 |
 
 本项目不是飞书妙记的完整复刻。它解决的是“大量录音、本地转写、自定义整理、结果仍回到飞书”这条链路。
 
@@ -104,6 +133,8 @@ python scripts/setup_check.py
 
 标题会根据内容生成；单人录音不会显示没有意义的“说话人1”，多人录音会保留编号区分观点。查看 [脱敏结果示例](examples/sample-minutes.md) 和 [对应文字记录](examples/sample-transcript.txt)。
 
+这意味着你拿到的不是一份需要重新阅读和加工的原始文本，而是一篇可以直接浏览、检索、分享和继续协作的工作文档。
+
 ## 自定义纪要
 
 `config.json` 中选择内置模板：
@@ -148,6 +179,17 @@ python scripts/setup_check.py
 
 详细配置见 [DeepSeek API 与 Key 安全说明](docs/setup-api.md)。
 
+## 已经验证到什么程度？
+
+- Windows、macOS、Ubuntu 的 Python 3.11 跨平台 CI 已通过；
+- macOS 本机 Python 3.12 和当前 Python 测试已通过；
+- 中文本地转写已用无隐私合成录音真实跑通；
+- 单人标签清理、多人标签保留、断电遗留锁、通知重试和模拟端到端流程都有自动测试；
+- 飞书直达消息命令已通过 dry-run，真实消息不会在未经用户同意时擅自发送；
+- iPhone、Android 真机界面和第一次接触项目的用户安装仍明确标记为人工验收项。
+
+详细证据和仍待验证的边界见 [验证矩阵](docs/validation.md)。项目不会把“代码能运行”包装成“所有设备都已经真实跑通”。
+
 ## 文档导航
 
 - [macOS 安装](docs/setup-macos.md)
@@ -159,6 +201,8 @@ python scripts/setup_check.py
 - [验证矩阵](docs/validation.md)
 - [纪要模板](prompts/README.md)
 - [结果示例](examples/sample-minutes.md)
+- [演示录屏脚本](docs/demo-script.md)
+- [推广与分享素材](docs/promotion-kit.md)
 
 ## 项目边界
 
@@ -170,7 +214,12 @@ python scripts/setup_check.py
 
 遇到问题，请按 [贡献指南](CONTRIBUTING.md) 提 Issue。附上系统版本、执行步骤、`status.json` 状态和已脱敏日志，比只说“不能用”更容易定位。
 
-如果这个项目帮你省下了整理录音的时间，欢迎点一个 Star，让更多需要大量录音转写的人看到它。
+如果这个项目帮你省下了整理录音的时间：
+
+1. 点一个 Star，让更多需要大量录音转写的人看到它；
+2. 把 [脱敏结果示例](examples/sample-minutes.md) 发给可能用得上的同事；
+3. 使用 [推广与分享素材](docs/promotion-kit.md) 介绍真实体验，不夸大未验证能力；
+4. 遇到问题或有通用改进，提交 Issue 或 PR。
 
 ## License
 

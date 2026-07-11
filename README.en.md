@@ -1,6 +1,6 @@
 [简体中文](README.md) | **English**
 
-# recording-inbox
+# recording-inbox - upload a recording, let the workflow finish it
 
 Drop audio into a Feishu/Lark Drive folder. A Mac or Windows PC transcribes it locally, creates structured AI notes, publishes a Feishu/Lark document, and sends you the result.
 
@@ -8,6 +8,30 @@ Drop audio into a Feishu/Lark Drive folder. A Mac or Windows PC transcribes it l
 [![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-blue)](docs/setup-windows.md)
 [![CI](https://github.com/chenmozhe008/recording-inbox/actions/workflows/ci.yml/badge.svg)](https://github.com/chenmozhe008/recording-inbox/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+Recording is easy. The repetitive work starts afterwards: moving files, waiting for transcription, extracting decisions and action items, naming the result, and putting it back where the team works. `recording-inbox` turns those steps into one restart-safe workflow.
+
+## Why use it?
+
+| Benefit | What it changes |
+|---|---|
+| Local open-source transcription | FunASR / SenseVoice runs on your computer and does not consume Feishu Minutes transcription quotas |
+| More than a transcript | Produces a title, overview, outline, action items, chapters, decisions, quotes, and transcript |
+| One inbox for every device | iPhone, Android, downloaded chat audio, and desktop files enter the same Feishu Drive folder |
+| Notes that fit your work | Built-in meeting, interview, course, and project templates, plus fully editable prompts |
+| Restart-safe automation | Resumes after shutdowns or interruptions and avoids duplicate transcription and duplicate documents |
+| Controlled privacy and cost | Audio transcription stays local; transcript text reaches an external API only when AI notes are enabled |
+| AI-agent-friendly setup | Codex, Claude Code, or Cursor can follow the repository's deployment and validation guide |
+
+Local transcription is not billed per minute, but computer usage and the optional AI notes API may still have a cost. The project aims for control and sustainability, not an unrealistic promise of zero cost.
+
+## Good fits
+
+- frequent meetings that need structured notes rather than raw text;
+- long interviews, research sessions, and customer conversations;
+- courses, training, livestreams, or podcasts that need an accumulating text archive;
+- teams already working in Feishu/Lark;
+- workflows that need custom terminology, note structure, or action-item rules.
 
 ## How it works
 
@@ -21,6 +45,17 @@ iPhone / Android / desktop audio
 ```
 
 The computer may be turned off temporarily. Audio stays in the inbox and resumes after the next login. A powered-off local computer cannot send an offline notification; it notifies you after pickup, completion, or failure.
+
+## recording-inbox or Feishu Minutes?
+
+| Situation | Better default |
+|---|---|
+| A few occasional recordings and the smoothest mobile experience | Feishu Minutes |
+| Many long recordings or insufficient transcription quota | recording-inbox |
+| Custom note structures and domain terminology | recording-inbox |
+| No Feishu/Lark usage | another tool |
+
+This project is not a full clone of Feishu Minutes. It focuses on a narrower workflow: high-volume local transcription, customizable notes, and results returned to Feishu/Lark.
 
 ## Quick start with an AI agent
 
@@ -57,6 +92,8 @@ Notes include an AI overview, outline, todos, chapters, decisions, quotes, and t
 
 Single-speaker recordings do not show meaningless `Speaker 1` labels. Multi-speaker recordings keep numbered labels when needed.
 
+The result is meant to be a working document that can be scanned, searched, shared, and acted on, rather than raw text that must be processed again.
+
 ## Privacy
 
 Transcription runs locally. If AI notes are enabled, transcript text is sent to the OpenAI-compatible API you configure. API keys stay in the local `.env` file and must never be committed.
@@ -65,9 +102,21 @@ Transcription runs locally. If AI notes are enabled, transcript text is sent to 
 
 This repository intentionally stays small: ingest, transcription, notes, publishing, and notification. It does not include the private project's task dashboards, approval cards, AI execution system, or iOS app.
 
+## Validation status
+
+- CI runs the test suite on Windows, macOS, and Ubuntu with Python 3.11.
+- Local Chinese transcription has been exercised with a privacy-safe synthetic recording.
+- Restart recovery, notification retry, single-speaker cleanup, template loading, and the simulated pipeline are covered by tests.
+- The Feishu direct-message command has passed a dry run; the project does not send real messages without user consent.
+- iPhone and Android UI recordings and a first-time novice install remain explicit manual verification items.
+
+See the [validation matrix](docs/validation.md) for evidence and remaining boundaries.
+
 ## Contributing
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md). Please remove tokens, IDs, local paths, recordings, and transcripts before opening an issue.
+
+If the project saves you time, star it, share the [sanitized output example](examples/sample-minutes.md), or use the [promotion kit](docs/promotion-kit.md) to describe a real experience without overstating unverified capabilities.
 
 ## License
 
