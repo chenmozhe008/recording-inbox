@@ -36,7 +36,7 @@ For a few occasional recordings, Feishu Minutes is usually simpler. This project
 - Feishu/Lark setup: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/setup-feishu-app.md
 - API and key security: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/setup-api.md
 - Recovery and troubleshooting: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/troubleshooting.md
-- Validation evidence and remaining boundaries: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/validation.md
+- Maintainer validation evidence and remaining boundaries: https://github.com/chenmozhe008/recording-inbox/blob/master/docs/maintainers/validation.md
 - Notes templates: https://github.com/chenmozhe008/recording-inbox/blob/master/prompts/README.md
 
 ## Examples

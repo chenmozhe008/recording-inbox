@@ -27,7 +27,7 @@
 | 默认好用，也能按场景改 | 默认使用成熟的通用智能纪要，另有客户、访谈、播客、课程、培训、项目、调研、复盘和口述模板 |
 | 关机重启能续跑 | 电脑临时关机、程序中断或通知失败后，会从已有阶段继续，避免重复转写和重复建文档 |
 | 隐私和费用更可控 | 音频转写不交给第三方转写服务；只有启用 AI 纪要时，文字才会发送给你选择的模型 API |
-| 普通用户也能部署 | 支持 macOS、Windows 10/11，可让 Codex、Claude Code 或 Cursor 按部署手册代为安装和自检 |
+| 普通用户也能部署 | 支持 macOS、Windows 10/11；可让自己常用的 AI 编程工具按说明安装和自检 |
 
 本地转写不按分钟收费，但电脑运行、电力以及可选的 AI 纪要 API 仍可能产生少量成本。本项目强调的是可控和可持续，不宣传无法保证的“绝对零成本”。
 
@@ -67,13 +67,13 @@ flowchart LR
 
 ## 最快安装
 
-### 方式 A：让 AI Agent 帮你安装
+### 方式 A：让 AI 工具帮你安装
 
-把下面这段发给 Codex、Claude Code 或 Cursor：
+把下面这段发给你已经在用的 AI 编程工具即可。比如 Claude Code、Codex、Gemini CLI、Cursor、Windsurf、GitHub Copilot、Cline、Roo Code、Qoder、CodeBuddy、Trae、WorkBuddy、龙虾、Hermes 或 zcode；这不是限定名单。
 
 ```text
 帮我部署 https://github.com/chenmozhe008/recording-inbox
-先读 AGENTS.md，根据我的系统选择 macOS 或 Windows 路径。
+根据我的电脑选择 macOS 或 Windows 安装路径。
 需要扫码、粘贴飞书文件夹链接或填写 API Key 时再让我操作，
 最后必须跑环境自检和模拟测试。
 ```
@@ -109,7 +109,7 @@ python scripts/setup_check.py
 
 第一次找到 inbox 后，可以把它加入飞书“收藏”，以后少找一层目录；不收藏也不影响上传。完整步骤见 [手机和电脑上传教程](docs/upload-from-phone.md)。
 
-飞书移动端按钮会随版本变化，仓库不会用模拟器中的 Mac 版飞书外壳冒充移动端验证。维护者更新截图或视频时，应按 [移动端真机录屏清单](docs/mobile-demo-checklist.md) 走完真实上传闭环。
+飞书移动端不同版本里，“云盘”可能显示为“云文档”，上传按钮也可能显示为 `+`。进入 inbox 后选择“上传文件”即可。
 
 手机只负责上传，电脑负责转写和整理。默认每分钟检查一次新录音。
 
@@ -189,16 +189,12 @@ python scripts/setup_check.py
 
 详细配置见 [模型 API 与 Key 安全说明](docs/setup-api.md)。
 
-## 已经验证到什么程度？
+## 第一次使用建议
 
-- Windows、macOS、Ubuntu 的 Python 3.11 跨平台 CI 已通过；
-- macOS 本机 Python 3.12 和当前 Python 测试已通过；
-- 中文本地转写已用无隐私合成录音真实跑通；
-- 单人标签清理、多人标签保留、断电遗留锁、通知重试和模拟端到端流程都有自动测试；
-- 飞书直达消息命令已通过 dry-run，真实消息不会在未经用户同意时擅自发送；
-- iPhone、Android 真机界面和第一次接触项目的用户安装仍明确标记为人工验收项。
-
-详细证据和仍待验证的边界见 [验证矩阵](docs/validation.md)。项目不会把“代码能运行”包装成“所有设备都已经真实跑通”。
+1. 先上传一条 30 秒以上、能听清人声的录音；
+2. 在飞书 inbox 确认文件已经出现；
+3. 保持处理电脑开机联网，等待飞书完成通知；
+4. 没有收到结果时，按 [故障恢复指南](docs/troubleshooting.md) 排查。
 
 ## 文档导航
 
@@ -208,12 +204,9 @@ python scripts/setup_check.py
 - [iPhone / Android / 电脑上传](docs/upload-from-phone.md)
 - [DeepSeek API 与 Key](docs/setup-api.md)
 - [故障恢复](docs/troubleshooting.md)
-- [验证矩阵](docs/validation.md)
 - [纪要模板](prompts/README.md)
 - [结果示例](examples/sample-minutes.md)
 - [AI 录音工作流常见问题](docs/faq.md)
-- [演示录屏脚本](docs/demo-script.md)
-- [推广与分享素材](docs/promotion-kit.md)
 - [独立项目页](https://chenmozhe008.github.io/recording-inbox/)
 
 ## 项目边界
@@ -230,7 +223,7 @@ python scripts/setup_check.py
 
 1. 点一个 Star，让更多需要大量录音转写的人看到它；
 2. 把 [脱敏结果示例](examples/sample-minutes.md) 发给可能用得上的同事；
-3. 使用 [推广与分享素材](docs/promotion-kit.md) 介绍真实体验，不夸大未验证能力；
+3. 分享时只介绍自己实际使用过的能力，并使用脱敏录音和截图；
 4. 遇到问题或有通用改进，提交 Issue 或 PR。
 
 ## License

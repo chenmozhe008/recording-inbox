@@ -32,7 +32,7 @@ iPhone / Android / 电脑录音
 - **默认好用，也能按场景改**：默认通用智能纪要，另有客户、访谈、播客、课程、培训、项目、调研、复盘、口述和自定义提示词；
 - **中断后可以继续**：电脑关机、进程中断或通知失败后按已有阶段恢复；
 - **隐私和费用更可控**：音频在本地转写，只有启用 AI 纪要时才发送文字到所选模型 API；
-- **普通用户可借助 AI Agent 安装**：Codex、Claude Code 或 Cursor 可以按仓库部署手册完成安装和自检。
+- **普通用户也可借助 AI 工具安装**：使用自己已有的 AI 编程工具，按安装说明完成配置和自检。
 
 本地转写不按分钟收费；默认推荐低成本的 DeepSeek V4 Flash，也可配置其他 OpenAI 兼容模型。电脑运行和 API 调用仍可能产生少量成本。
 
@@ -52,24 +52,17 @@ iPhone / Android / 电脑录音
 
 偶尔只转一两条录音，飞书妙记通常更省事；完全不使用飞书时，其他工具更合适。
 
-## 已验证到什么程度？
-
-- Windows、macOS、Ubuntu Python 3.11 跨平台 CI 已通过；
-- macOS 本机测试和无隐私合成中文录音本地转写已通过；
-- 断电遗留锁、幂等去重、通知重试、模板和单人标签清理有自动测试；
-- iPhone、Android 真机界面和第一次接触项目的用户安装仍是人工验收项。
-
-[查看完整验证矩阵](https://github.com/chenmozhe008/recording-inbox/blob/master/docs/validation.md)
-
 ## 开始使用
 
-把下面这段发给 Codex、Claude Code 或 Cursor：
+把下面这段发给你已经在用的 AI 编程工具即可。Claude Code、Codex、Gemini CLI、Cursor、Windsurf、GitHub Copilot、Cline、Roo Code、Qoder、CodeBuddy、Trae、WorkBuddy、龙虾、Hermes、zcode 等都可以；这不是限定名单。
 
 ```text
 帮我部署 https://github.com/chenmozhe008/recording-inbox
-先读 AGENTS.md，根据我的系统选择 macOS 或 Windows 路径。
+根据我的电脑选择 macOS 或 Windows 安装路径。
 需要扫码、粘贴飞书文件夹链接或填写 API Key 时再让我操作，
 最后必须跑环境自检和模拟测试。
 ```
 
-[查看 v0.1.0 Release](https://github.com/chenmozhe008/recording-inbox/releases/tag/v0.1.0) · [提交 Issue](https://github.com/chenmozhe008/recording-inbox/issues) · [给项目一个 Star](https://github.com/chenmozhe008/recording-inbox)
+第一次使用时，先上传一条 30 秒以上、能听清人声的录音；在 inbox 确认文件出现后，保持处理电脑开机联网，等待飞书完成通知。没有收到结果时，按 [故障恢复指南](https://github.com/chenmozhe008/recording-inbox/blob/master/docs/troubleshooting.md) 排查。
+
+[查看 v0.2.0 Release](https://github.com/chenmozhe008/recording-inbox/releases/tag/v0.2.0) · [提交 Issue](https://github.com/chenmozhe008/recording-inbox/issues) · [给项目一个 Star](https://github.com/chenmozhe008/recording-inbox)

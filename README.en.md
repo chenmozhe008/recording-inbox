@@ -21,7 +21,7 @@ Recording is easy. The repetitive work starts afterwards: moving files, waiting 
 | Good by default, flexible by scenario | The recommended default uses the mature general notes format; nine optional scenario templates and custom prompts are available |
 | Restart-safe automation | Resumes after shutdowns or interruptions and avoids duplicate transcription and duplicate documents |
 | Controlled privacy and cost | Audio transcription stays local; transcript text reaches an external API only when AI notes are enabled |
-| AI-agent-friendly setup | Codex, Claude Code, or Cursor can follow the repository's deployment and validation guide |
+| AI-tool-friendly setup | Use the coding AI tool you already have to follow the installation guide and run checks |
 
 Local transcription is not billed per minute. DeepSeek V4 Flash is the recommended default for notes because its current token pricing is very low, while any OpenAI-compatible Chat Completions provider can be configured. Computer usage and API calls can still have a cost; the project does not promise absolute zero cost.
 
@@ -57,13 +57,13 @@ The computer may be turned off temporarily. Audio stays in the inbox and resumes
 
 This project is not a full clone of Feishu Minutes. It focuses on a narrower workflow: high-volume local transcription, customizable notes, and results returned to Feishu/Lark.
 
-## Quick start with an AI agent
+## Guided setup with an AI tool
 
-Give Codex, Claude Code, or Cursor this prompt:
+Give this prompt to the coding AI tool you already use. Examples include Claude Code, Codex, Gemini CLI, Cursor, Windsurf, GitHub Copilot, Cline, Roo Code, Qoder, CodeBuddy, Trae, WorkBuddy, Longxia, Hermes, or zcode. This is not a restricted list.
 
 ```text
 Deploy https://github.com/chenmozhe008/recording-inbox for me.
-Read AGENTS.md first, choose macOS or Windows based on my computer,
+Choose the macOS or Windows installation path for my computer,
 and stop only when I need to scan Feishu, paste folder links, or enter an API key.
 Run setup checks and the simulated tests before enabling background processing.
 ```
@@ -73,11 +73,10 @@ Manual guides:
 - [macOS](docs/setup-macos.md)
 - [Windows 10/11](docs/setup-windows.md)
 - [Phone and desktop upload](docs/upload-from-phone.md)
-- [Validation matrix](docs/validation.md)
 - [FAQ](docs/faq.md)
 - [Project landing page](https://chenmozhe008.github.io/recording-inbox/)
 
-Feishu's mobile UI changes over time. This repository does not treat a macOS Feishu bundle copied into iOS Simulator as mobile validation. Maintainers should use the [real-device recording checklist](docs/mobile-demo-checklist.md) when refreshing tutorial media.
+Depending on the Feishu version, Cloud Drive may be called Cloud Docs and the upload button may appear as `+`. Open the inbox folder and choose Upload File.
 
 Both platforms use the same wizard:
 
@@ -104,21 +103,18 @@ Transcription runs locally. If AI notes are enabled, transcript text is sent to 
 
 This repository intentionally stays small: ingest, transcription, notes, publishing, and notification. It does not include the private project's task dashboards, approval cards, AI execution system, or iOS app.
 
-## Validation status
+## First recording
 
-- CI runs the test suite on Windows, macOS, and Ubuntu with Python 3.11.
-- Local Chinese transcription has been exercised with a privacy-safe synthetic recording.
-- Restart recovery, notification retry, single-speaker cleanup, template loading, and the simulated pipeline are covered by tests.
-- A real dual-document Feishu publish and one-message/two-link notification acceptance test passed on 2026-07-12.
-- iPhone and Android UI recordings and a first-time novice install remain explicit manual verification items.
-
-See the [validation matrix](docs/validation.md) for evidence and remaining boundaries.
+1. Upload a clear recording longer than 30 seconds to your Feishu inbox.
+2. Confirm that the file appears in the inbox.
+3. Keep the processing computer powered on and online.
+4. Wait for the Feishu completion notification. If it does not arrive, use [troubleshooting](docs/troubleshooting.md).
 
 ## Contributing
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md). Please remove tokens, IDs, local paths, recordings, and transcripts before opening an issue.
 
-If the project saves you time, star it, share the [sanitized output example](examples/sample-minutes.md), or use the [promotion kit](docs/promotion-kit.md) to describe a real experience without overstating unverified capabilities.
+If the project saves you time, star it and share the [sanitized output example](examples/sample-minutes.md). Please use only recordings and screenshots that are safe to share.
 
 ## License
 
