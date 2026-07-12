@@ -12,7 +12,7 @@ lark-cli auth status --json
 
 授权包含：
 
-- 读取 inbox 音频；
+- 读取“录音收件箱”中的音频；
 - 创建和导入飞书文档；
 - 用当前飞书账号给自己发送完成/失败消息。
 
@@ -22,8 +22,10 @@ lark-cli auth status --json
 
 在飞书云盘建立：
 
-- `recording-inbox`：上传录音；
-- `recording-minutes`：接收纪要，可选。
+- `录音收件箱`：上传新录音；
+- `录音结果`：接收智能纪要和文字稿。
+
+首次接收音频后，程序会在“录音收件箱”下自动建立 `已接收原始音频` 子文件夹，用来保留已经由电脑接手的原始音频。
 
 打开文件夹，复制浏览器地址栏完整链接，例如：
 
@@ -76,6 +78,6 @@ python scripts/setup_check.py --test-notification
 ## 常见问题
 
 - 登录链接打不开：运行 `lark-cli auth qrcode` 用飞书扫码。
-- 下载无权限：重新授权 `drive,docs`，并确认账号能打开 inbox 文件夹。
+- 下载无权限：重新授权 `drive,docs`，并确认账号能打开“录音收件箱”。
 - 消息无权限：重新申请 `im:message.send_as_user im:message` scope。
-- output 没文档：检查 output 文件夹链接和编辑权限。
+- 录音结果里没有文档：检查“录音结果”文件夹链接和编辑权限。

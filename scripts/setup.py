@@ -98,7 +98,7 @@ def main() -> int:
 
     inbox_default = _usable(config.get("feishu_inbox_folder_link"))
     while True:
-        inbox = _ask("飞书 inbox 文件夹链接", inbox_default, required=True)
+        inbox = _ask("飞书“录音收件箱”文件夹链接", inbox_default, required=True)
         if folder_token_from(inbox):
             break
         print("链接无效，请粘贴浏览器地址栏中含 /drive/folder/ 的整条链接。")
@@ -106,7 +106,7 @@ def main() -> int:
 
     output_default = _usable(config.get("feishu_output_folder_link"))
     config["feishu_output_folder_link"] = _ask(
-        "飞书纪要输出文件夹链接（可留空，只保存本地 Markdown）",
+        "飞书“录音结果”文件夹链接（可留空，只保存本地 Markdown）",
         output_default,
     )
 

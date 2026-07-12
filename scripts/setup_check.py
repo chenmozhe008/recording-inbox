@@ -90,8 +90,8 @@ def main(argv: list[str] | None = None) -> int:
             all_ok &= check("config.json 是合法 JSON", False, f"JSON 语法错误：{exc}")
         inbox = str(config.get("feishu_inbox_folder_link") or config.get("feishu_inbox_folder_token") or "")
         all_ok &= check(
-            "已填 feishu_inbox_folder_link（inbox 文件夹链接）", bool(inbox) and inbox.isascii(),
-            "把飞书 inbox 文件夹链接贴进 config.json（见 docs/setup-feishu-app.md）",
+            "已填 feishu_inbox_folder_link（录音收件箱链接）", bool(inbox) and inbox.isascii(),
+            "把飞书“录音收件箱”文件夹链接贴进 config.json（见 docs/setup-feishu-app.md）",
         )
 
     # 2. lark-cli
@@ -123,17 +123,17 @@ def main(argv: list[str] | None = None) -> int:
                 "drive", "files", "list", "--as", "user",
                 "--folder-token", output_folder, "--page-size", "1",
             ], timeout=30)
-            all_ok &= check("飞书纪要输出文件夹可访问", True)
+            all_ok &= check("飞书“录音结果”文件夹可访问", True)
         except (RuntimeError, subprocess.SubprocessError, OSError, json.JSONDecodeError):
             all_ok &= check(
-                "飞书纪要输出文件夹可访问", False,
-                "输出文件夹可能已删除或无权限；重新运行 python scripts/setup.py 选择有效文件夹",
+                "飞书“录音结果”文件夹可访问", False,
+                "录音结果文件夹可能已删除或无权限；重新运行 python scripts/setup.py 选择有效文件夹",
             )
     elif output_folder:
-        warn("尚未验证飞书纪要输出文件夹", False, "先完成 lark-cli 登录授权后重新运行自检")
+        warn("尚未验证飞书“录音结果”文件夹", False, "先完成 lark-cli 登录授权后重新运行自检")
     else:
-        warn("未配置飞书纪要输出文件夹（仅保存本地 Markdown）", False,
-             "需要飞书双文档归档时，重新运行 python scripts/setup.py 配置输出文件夹")
+        warn("未配置飞书“录音结果”文件夹（仅保存本地 Markdown）", False,
+             "需要飞书双文档归档时，重新运行 python scripts/setup.py 配置录音结果文件夹")
 
     # 3. 飞书通知：新安装默认直达当前账号；Webhook 仅兼容旧配置
     notify_mode = str(config.get("feishu_notify_mode", "")).strip().lower()
