@@ -28,7 +28,7 @@ class CommonTests(unittest.TestCase):
         with patch.object(common, "lark_auth_status", return_value=payload):
             self.assertEqual(common.current_user_open_id({}), "ou_test_user")
 
-    def test_direct_notification_uses_lark_cli_and_document_link(self) -> None:
+    def test_direct_notification_uses_lark_cli_and_two_document_links(self) -> None:
         captured: list[str] = []
 
         def fake_run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
@@ -45,13 +45,16 @@ class CommonTests(unittest.TestCase):
                 config,
                 title="项目短会",
                 doc_result={"data": {"url": "https://example.feishu.cn/docx/demo"}},
+                transcript_doc_result={"data": {"url": "https://example.feishu.cn/docx/transcript"}},
             )
         self.assertTrue(sent)
         self.assertIn("+messages-send", captured)
         self.assertIn("ou_test_user", captured)
         markdown = captured[captured.index("--markdown") + 1]
-        self.assertIn("打开飞书纪要", markdown)
+        self.assertIn("打开智能纪要", markdown)
+        self.assertIn("打开文字稿", markdown)
         self.assertIn("https://example.feishu.cn/docx/demo", markdown)
+        self.assertIn("https://example.feishu.cn/docx/transcript", markdown)
 
     def test_legacy_webhook_config_remains_supported(self) -> None:
         config = {"feishu_notify_webhook": "https://example.invalid/hook"}

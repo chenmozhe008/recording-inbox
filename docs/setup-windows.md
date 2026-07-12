@@ -34,7 +34,7 @@ where.exe lark-cli.cmd
 ```powershell
 python -m venv asr-venv
 asr-venv\Scripts\python.exe -m pip install --upgrade pip setuptools wheel
-asr-venv\Scripts\pip.exe install -i https://pypi.tuna.tsinghua.edu.cn/simple funasr modelscope torch torchaudio soundfile scikit-learn zhconv imageio-ffmpeg
+asr-venv\Scripts\pip.exe install -i https://pypi.tuna.tsinghua.edu.cn/simple funasr modelscope torch torchaudio soundfile scikit-learn zhconv truststore imageio-ffmpeg
 ```
 
 `imageio-ffmpeg` 自带 ffmpeg，通常无需单独下载。

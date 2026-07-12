@@ -2,7 +2,7 @@
 
 # recording-inbox - open-source AI recording workflow
 
-Upload a recording and let the workflow finish it: audio from a phone or computer enters Feishu/Lark Drive, then a Mac or Windows PC runs local speech-to-text, creates structured AI meeting notes, publishes a document, and sends you the result.
+Upload a recording and let the workflow finish it: audio from a phone or computer enters Feishu/Lark Drive, then a Mac or Windows PC runs local speech-to-text, creates structured AI meeting notes and a separate full transcript, publishes both documents, and sends you one result message with both links.
 
 [![macOS](https://img.shields.io/badge/macOS-supported-black)](docs/setup-macos.md)
 [![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-blue)](docs/setup-windows.md)
@@ -16,14 +16,14 @@ Recording is easy. The repetitive work starts afterwards: moving files, waiting 
 | Benefit | What it changes |
 |---|---|
 | Local open-source transcription | FunASR / SenseVoice runs on your computer and does not consume Feishu Minutes transcription quotas |
-| More than a transcript | Produces a title, overview, outline, action items, chapters, decisions, quotes, and transcript |
+| Two useful documents | Produces structured AI meeting notes for quick review and a separate full transcript for checking, search, and quotation |
 | One inbox for every device | iPhone, Android, downloaded chat audio, and desktop files enter the same Feishu Drive folder |
-| Notes that fit your work | Built-in meeting, interview, course, and project templates, plus fully editable prompts |
+| Good by default, flexible by scenario | The recommended default uses the mature general notes format; nine optional scenario templates and custom prompts are available |
 | Restart-safe automation | Resumes after shutdowns or interruptions and avoids duplicate transcription and duplicate documents |
 | Controlled privacy and cost | Audio transcription stays local; transcript text reaches an external API only when AI notes are enabled |
 | AI-agent-friendly setup | Codex, Claude Code, or Cursor can follow the repository's deployment and validation guide |
 
-Local transcription is not billed per minute, but computer usage and the optional AI notes API may still have a cost. The project aims for control and sustainability, not an unrealistic promise of zero cost.
+Local transcription is not billed per minute. DeepSeek V4 Flash is the recommended default for notes because its current token pricing is very low, while any OpenAI-compatible Chat Completions provider can be configured. Computer usage and API calls can still have a cost; the project does not promise absolute zero cost.
 
 ## Good fits
 
@@ -39,9 +39,9 @@ Local transcription is not billed per minute, but computer usage and the optiona
 iPhone / Android / desktop audio
         -> Feishu Drive inbox
         -> local FunASR transcription
-        -> AI notes
-        -> Feishu document
-        -> direct Feishu message
+        -> AI notes + separate full transcript
+        -> two Feishu documents
+        -> one direct Feishu message with two links
 ```
 
 The computer may be turned off temporarily. Audio stays in the inbox and resumes after the next login. A powered-off local computer cannot send an offline notification; it notifies you after pickup, completion, or failure.
@@ -90,11 +90,11 @@ python scripts/setup_check.py
 
 ![Sanitized AI notes preview](docs/assets/sample-minutes-preview.jpg)
 
-Notes include an AI overview, outline, todos, chapters, decisions, quotes, and transcript. Built-in templates cover meetings, interviews, courses, and project discussions. See the [sample notes](examples/sample-minutes.md).
+The output consists of two documents: AI notes include an overview, outline, todos, chapters, decisions, and quotes; the full transcript remains separate. The recommended default template works for general meetings, while optional templates cover customer conversations, interviews, podcasts, courses, training, projects, research, reviews, and dictation. See the [sample notes](examples/sample-minutes.md) and [sample transcript](examples/sample-transcript.txt).
 
 Single-speaker recordings do not show meaningless `Speaker 1` labels. Multi-speaker recordings keep numbered labels when needed.
 
-The result is meant to be a working document that can be scanned, searched, shared, and acted on, rather than raw text that must be processed again.
+The two-document result is meant to support both fast review and careful verification, rather than forcing users to choose between a short summary and raw text.
 
 ## Privacy
 
@@ -109,7 +109,7 @@ This repository intentionally stays small: ingest, transcription, notes, publish
 - CI runs the test suite on Windows, macOS, and Ubuntu with Python 3.11.
 - Local Chinese transcription has been exercised with a privacy-safe synthetic recording.
 - Restart recovery, notification retry, single-speaker cleanup, template loading, and the simulated pipeline are covered by tests.
-- The Feishu direct-message command has passed a dry run; the project does not send real messages without user consent.
+- A real dual-document Feishu publish and one-message/two-link notification acceptance test passed on 2026-07-12.
 - iPhone and Android UI recordings and a first-time novice install remain explicit manual verification items.
 
 See the [validation matrix](docs/validation.md) for evidence and remaining boundaries.

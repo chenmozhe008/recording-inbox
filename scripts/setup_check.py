@@ -14,7 +14,15 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from common import current_user_open_id, lark_auth_status, load_dotenv, notify_feishu
+from common import (
+    SUMMARY_TEMPLATES,
+    configured_folder,
+    current_user_open_id,
+    lark_auth_status,
+    lark_json,
+    load_dotenv,
+    notify_feishu,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -106,6 +114,26 @@ def main(argv: list[str] | None = None) -> int:
                 "lark-cli 已登录授权", False,
                 "运行 lark-cli auth login --domain drive,docs 完成授权",
             )
+
+    # 2.5. 输出目录：只读探测，避免旧 token 到真正发布时才暴露。
+    output_folder = configured_folder(config, "output")
+    if output_folder and lark_found and auth_payload:
+        try:
+            lark_json(config, [
+                "drive", "files", "list", "--as", "user",
+                "--folder-token", output_folder, "--page-size", "1",
+            ], timeout=30)
+            all_ok &= check("飞书纪要输出文件夹可访问", True)
+        except (RuntimeError, subprocess.SubprocessError, OSError, json.JSONDecodeError):
+            all_ok &= check(
+                "飞书纪要输出文件夹可访问", False,
+                "输出文件夹可能已删除或无权限；重新运行 python scripts/setup.py 选择有效文件夹",
+            )
+    elif output_folder:
+        warn("尚未验证飞书纪要输出文件夹", False, "先完成 lark-cli 登录授权后重新运行自检")
+    else:
+        warn("未配置飞书纪要输出文件夹（仅保存本地 Markdown）", False,
+             "需要飞书双文档归档时，重新运行 python scripts/setup.py 配置输出文件夹")
 
     # 3. 飞书通知：新安装默认直达当前账号；Webhook 仅兼容旧配置
     notify_mode = str(config.get("feishu_notify_mode", "")).strip().lower()
@@ -200,8 +228,8 @@ def main(argv: list[str] | None = None) -> int:
     template = str(config.get("summary_template") or "meeting")
     all_ok &= check(
         "纪要模板有效",
-        template in {"meeting", "interview", "course", "project"},
-        "summary_template 只能是 meeting / interview / course / project",
+        template in SUMMARY_TEMPLATES,
+        f"summary_template 只能是：{' / '.join(SUMMARY_TEMPLATES)}",
     )
     prompt_file = str(config.get("summary_prompt_file") or "").strip()
     if prompt_file:

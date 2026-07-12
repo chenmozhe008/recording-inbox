@@ -11,15 +11,16 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from common import atomic_write_json, current_user_open_id, folder_token_from, load_dotenv
+from common import (
+    SUMMARY_TEMPLATES,
+    atomic_write_json,
+    current_user_open_id,
+    folder_token_from,
+    load_dotenv,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
-TEMPLATES = {
-    "1": "meeting",
-    "2": "interview",
-    "3": "course",
-    "4": "project",
-}
+TEMPLATES = {str(index): template for index, template in enumerate(SUMMARY_TEMPLATES, start=1)}
 
 
 def _usable(value: Any) -> str:
@@ -117,7 +118,9 @@ def main() -> int:
     if summary_enabled:
         current_template = str(config.get("summary_template") or "meeting")
         reverse = {value: key for key, value in TEMPLATES.items()}
-        print("\n纪要模板：1 会议纪要 / 2 访谈整理 / 3 课程笔记 / 4 项目沟通")
+        print("\n纪要模板（直接回车使用默认推荐）：")
+        for number, template in TEMPLATES.items():
+            print(f"  {number}. {SUMMARY_TEMPLATES[template]}")
         choice = _ask("选择模板", reverse.get(current_template, "1"))
         config["summary_template"] = TEMPLATES.get(choice, current_template)
         config["summary_prompt_file"] = _ask(
@@ -125,6 +128,10 @@ def main() -> int:
             str(config.get("summary_prompt_file") or ""),
         )
         key_env = str(config.get("summary_api_key_env") or "DEEPSEEK_API_KEY")
+        print(
+            "\n模型默认使用 DeepSeek V4 Flash（推荐，通常成本很低）。"
+            "已有其他 OpenAI 兼容 API 时，可稍后按 docs/setup-api.md 修改配置。"
+        )
         load_dotenv()
         if not os.environ.get(key_env):
             key = getpass.getpass(f"模型 API Key（写入 {key_env}，可留空）：").strip()

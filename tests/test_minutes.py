@@ -9,11 +9,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import minutes  # noqa: E402
+from common import SUMMARY_TEMPLATES  # noqa: E402
 
 
 class MinutesTests(unittest.TestCase):
     def test_each_builtin_template_is_loadable(self) -> None:
-        for template in ("meeting", "interview", "course", "project"):
+        for template in SUMMARY_TEMPLATES:
             with self.subTest(template=template):
                 prompt = minutes.build_prompt(
                     {"title": "测试"},

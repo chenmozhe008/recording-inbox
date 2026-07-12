@@ -17,6 +17,7 @@ from typing import Any
 
 from common import (
     configured_folder,
+    document_url_from_result,
     import_markdown_as_docx,
     load_config,
     log,
@@ -49,39 +50,77 @@ def task_dirs(config: dict[str, Any]) -> list[Path]:
     return sorted(p for p in root.iterdir() if p.is_dir() and (p / "manifest.json").is_file())
 
 
+def render_transcript_markdown(title: str, transcript: str) -> str:
+    return f"# {title} 文字稿\n\n{transcript.strip()}\n"
+
+
+def append_transcript_link(minutes: str, transcript_url: str) -> str:
+    if not transcript_url:
+        return minutes
+    return f"{minutes.rstrip()}\n\n---\n\n## 完整文字稿\n\n[打开文字稿]({transcript_url})\n"
+
+
 def publish_task(task_dir: Path, config: dict[str, Any]) -> bool:
     manifest = json.loads((task_dir / "manifest.json").read_text(encoding="utf-8"))
     minutes_path = task_dir / "minutes.md"
+    transcript_path = task_dir / "transcript.txt"
+    status = read_status(task_dir)
+    title = str(status.get("display_title") or manifest["title"])
     day = datetime.now().strftime("%Y-%m-%d")
+    transcript_doc_path = task_dir / "transcript.md"
+    transcript_doc_path.write_text(
+        render_transcript_markdown(title, transcript_path.read_text(encoding="utf-8")),
+        encoding="utf-8",
+    )
 
-    # 1) 本地 Markdown 输出（必出）
+    # 1) 本地 Markdown 输出（必出）：纪要与文字稿分开，便于用户独立打开。
     output_dir = resolve_path(config.get("output_dir", "output/minutes"))
     output_dir.mkdir(parents=True, exist_ok=True)
-    local_path = output_dir / f"{day} {manifest['title']}.md"
+    local_path = output_dir / f"{day} {title} - 智能纪要.md"
+    local_transcript_path = output_dir / f"{day} {title} - 文字稿.md"
     shutil.copyfile(minutes_path, local_path)
+    shutil.copyfile(transcript_doc_path, local_transcript_path)
 
-    # 2) 飞书在线文档（可选）
+    # 2) 飞书在线文档（可选）：先发文字稿，纪要再反链到它；每一步都记状态，重试不重复建稿。
     folder_token = configured_folder(config, "output")
-    doc_result: dict[str, Any] = {}
+    transcript_result: dict[str, Any] = {"data": status.get("feishu_transcript_import", {})}
+    doc_result: dict[str, Any] = {"data": status.get("feishu_import", {})}
     if folder_token:
         try:
-            doc_result = import_markdown_as_docx(
-                config, minutes_path, f"{day} {manifest['title']}", folder_token,
-            )
+            if not status.get("feishu_transcript_import"):
+                transcript_result = import_markdown_as_docx(
+                    config, transcript_doc_path, f"{day} 文字稿：{title}", folder_token,
+                )
+                update_status(
+                    task_dir, "minutes_ready", "文字稿已发布，正在发布智能纪要。",
+                    feishu_transcript_import=transcript_result.get("data", {}),
+                )
+            transcript_url = document_url_from_result(config, transcript_result)
+            if not status.get("feishu_import"):
+                minutes_publish_path = task_dir / "minutes-publish.md"
+                minutes_publish_path.write_text(
+                    append_transcript_link(minutes_path.read_text(encoding="utf-8"), transcript_url),
+                    encoding="utf-8",
+                )
+                doc_result = import_markdown_as_docx(
+                    config, minutes_publish_path, f"{day} 智能纪要：{title}", folder_token,
+                )
         except Exception as exc:
             update_status(task_dir, "publish_failed", f"飞书文档导入失败：{exc}"[:300])
             return False
 
-    log(f"完成：{manifest['title']} -> {local_path.name}")
+    log(f"完成：{title} -> {local_path.name} / {local_transcript_path.name}")
     update_status(
         task_dir, "published", "处理完成。",
         local_output=str(local_path),
+        local_transcript_output=str(local_transcript_path),
         feishu_import=doc_result.get("data", {}),
+        feishu_transcript_import=transcript_result.get("data", {}),
         notification_sent=False,
     )
     notification_sent = notify_feishu(
-        config, title=str(manifest["title"]),
-        local_path=str(local_path), doc_result=doc_result,
+        config, title=title, local_path=str(local_path),
+        doc_result=doc_result, transcript_doc_result=transcript_result,
     )
     if notification_sent:
         update_status(
@@ -132,6 +171,7 @@ def retry_pending_notification(task_dir: Path, config: dict[str, Any]) -> None:
         title=title,
         local_path=str(status.get("local_output") or ""),
         doc_result={"data": status.get("feishu_import", {})},
+        transcript_doc_result={"data": status.get("feishu_transcript_import", {})},
     )
     if sent:
         update_status(

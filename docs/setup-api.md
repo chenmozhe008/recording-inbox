@@ -1,6 +1,12 @@
-# DeepSeek API 与 Key 安全说明
+# 模型 API 与 Key 安全说明
 
 AI 智能纪要是可选功能。本地转写不需要 API Key；关闭 `summary_enabled` 后仍会生成文字记录。
+
+## 默认推荐
+
+仓库默认使用 `deepseek-v4-flash`。它适合纪要整理，当前按 token 计费很低，常见录音纪要的模型调用成本通常可以忽略，但并非绝对零成本。
+
+截至 2026-07-12，DeepSeek 官方人民币价格为：缓存未命中输入 1 元 / 百万 tokens，输出 2 元 / 百万 tokens。价格和型号可能变化，安装与宣传时以[官方价格页](https://api-docs.deepseek.com/zh-cn/quick_start/pricing)为准。
 
 ## 申请步骤
 
@@ -34,7 +40,17 @@ DEEPSEEK_API_KEY=YOUR_API_KEY
 - 提交到 GitHub；
 - 发到 Issue 或日志附件。
 
-## 手工配置
+## 使用其他模型服务
+
+项目不绑定 DeepSeek。只要服务商兼容 OpenAI Chat Completions 接口，就可以使用自己的 API Key。需要修改三个字段：
+
+- `summary_api_base`：服务商的 API 基础地址；
+- `summary_model`：模型名称；
+- `summary_api_key_env`：本机环境变量名。
+
+Key 仍然只写进 `.env`，不要直接写进 `config.json`。
+
+## 手工配置示例
 
 不使用向导时，自己创建 `.env`，再在 `config.json` 填：
 
@@ -47,7 +63,7 @@ DEEPSEEK_API_KEY=YOUR_API_KEY
 }
 ```
 
-其他 OpenAI 兼容接口也可以使用：修改 API 地址、模型名和 Key 环境变量名即可。
+使用其他兼容接口时，修改 API 地址、模型名和 Key 环境变量名即可，程序会请求 `<summary_api_base>/chat/completions`。
 
 ## 常见错误
 

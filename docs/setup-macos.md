@@ -23,7 +23,7 @@ npm install -g @larksuite/cli
 ```bash
 python3.12 -m venv asr-venv
 ./asr-venv/bin/python -m pip install --upgrade pip setuptools wheel
-./asr-venv/bin/pip install funasr modelscope torch torchaudio soundfile scikit-learn zhconv
+./asr-venv/bin/pip install funasr modelscope torch torchaudio soundfile scikit-learn zhconv truststore
 ```
 
 首次转写会下载模型，耗时和磁盘占用明显高于后续运行。
