@@ -11,7 +11,7 @@ permalink: /faq/
 
 ## 有没有开源的录音转文字工具，能自动生成会议纪要？
 
-`recording-inbox` 就是为这个场景做的：录音上传到飞书云盘后，Mac 或 Windows 自动在本地完成语音转文字（FunASR / SenseVoice / whisper.cpp），再由 AI 生成包含标题、摘要、主题大纲、待办、章节和文字记录的智能纪要，最后归档为飞书文档并发消息提醒。整条链路开源、可自部署，见 [README](../README.md)。
+`recording-inbox` 就是为这个场景做的：录音上传到飞书云盘后，Mac 或 Windows 自动在本地完成语音转文字（FunASR / SenseVoice / whisper.cpp），再由 AI 生成包含标题、摘要、主题大纲、待办和章节的智能纪要，并把完整文字稿单独归档为第二篇飞书文档；最后只发一条消息，提供两篇文档入口。整条链路开源、可自部署，见 [README](../README.md)。
 
 ## 什么是 AI 录音工作流？
 
@@ -51,11 +51,11 @@ macOS 和 Windows 10/11 都支持，各有完整安装教程：[macOS 安装](se
 
 ## 纪要格式能改吗？
 
-能。内置会议、访谈、课程、项目沟通四套模板，`config.json` 一行切换；也可以把自己的要求写进 Markdown 文件完全自定义，包括行业术语表。见[纪要模板说明](../prompts/README.md)。
+能。默认模板就是经过真实使用调整的通用智能纪要，不选择也能直接用；另有客户沟通、访谈、播客、课程、培训、项目、调研、复盘和口述模板。`config.json` 一行切换，也可以用 Markdown 完全自定义。见[纪要模板说明](../prompts/README.md)。
 
 ## 必须用 DeepSeek 吗？
 
-纪要生成走 OpenAI 兼容接口，默认文档以 DeepSeek 为例（性价比高），换成其他兼容服务改配置即可。转写部分完全本地，不依赖任何模型 API。
+不是。纪要生成走 OpenAI 兼容接口，默认推荐 DeepSeek V4 Flash，因为当前按 token 计费很低；已有其他兼容服务时，替换 API 地址、模型名和 Key 环境变量名即可。转写部分完全本地，不依赖任何模型 API。
 
 ## 不用飞书能用吗？
 

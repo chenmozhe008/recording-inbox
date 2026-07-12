@@ -24,7 +24,7 @@
 | 本地开源转写 | FunASR / SenseVoice 在自己的电脑上运行，不消耗飞书妙记转写分钟数，适合大量、长期和长录音 |
 | 不只是逐字稿 | 自动生成标题、总览、主题大纲、待办、章节、关键决策和文字记录 |
 | 手机和电脑统一入口 | iPhone、Android、微信下载音频和电脑文件都进入同一个飞书 inbox |
-| 纪要可以按工作改 | 内置会议、访谈、课程、项目沟通模板，也可以直接修改提示词和行业术语 |
+| 默认好用，也能按场景改 | 默认使用成熟的通用智能纪要，另有客户、访谈、播客、课程、培训、项目、调研、复盘和口述模板 |
 | 关机重启能续跑 | 电脑临时关机、程序中断或通知失败后，会从已有阶段继续，避免重复转写和重复建文档 |
 | 隐私和费用更可控 | 音频转写不交给第三方转写服务；只有启用 AI 纪要时，文字才会发送给你选择的模型 API |
 | 普通用户也能部署 | 支持 macOS、Windows 10/11，可让 Codex、Claude Code 或 Cursor 按部署手册代为安装和自检 |
@@ -93,8 +93,8 @@ python scripts/setup_check.py
 向导会让你完成：
 
 1. 粘贴飞书 inbox 和纪要输出文件夹链接；
-2. 选择会议、访谈、课程或项目沟通模板；
-3. 安全输入 DeepSeek API Key（只写本机 `.env`）；
+2. 直接使用默认智能纪要，或按需要选择其他场景模板；
+3. 安全输入模型 API Key（默认推荐 DeepSeek V4 Flash，只写本机 `.env`）；
 4. 自动识别当前飞书账号，用已有授权直接给自己发结果消息。
 
 不需要手工截取 folder token，也不需要为了通知创建群机器人 Webhook。
@@ -119,7 +119,7 @@ python scripts/setup_check.py
 
 截图来自仓库内的 [脱敏示例纪要](examples/sample-minutes.md)，展示标题、摘要、主题大纲和待办的实际排版。
 
-生成的飞书文档包含：
+每条录音会生成两篇独立的飞书文档：
 
 ```text
 智能纪要
@@ -128,12 +128,14 @@ python scripts/setup_check.py
 智能章节
 关键决策
 金句时刻
-文字记录
+
+文字稿
+带时间戳的完整文字记录
 ```
 
-标题会根据内容生成；单人录音不会显示没有意义的“说话人1”，多人录音会保留编号区分观点。查看 [脱敏结果示例](examples/sample-minutes.md) 和 [对应文字记录](examples/sample-transcript.txt)。
+完成后飞书只发送一条通知，其中提供“打开智能纪要”和“打开文字稿”两个入口。标题会根据内容生成；单人录音不会显示没有意义的“说话人1”，多人录音会保留编号区分观点。查看 [脱敏结果示例](examples/sample-minutes.md) 和 [对应文字记录](examples/sample-transcript.txt)。
 
-这意味着你拿到的不是一份需要重新阅读和加工的原始文本，而是一篇可以直接浏览、检索、分享和继续协作的工作文档。
+这意味着你拿到的不是一份需要重新阅读和加工的原始文本，而是一组可分别浏览、检索、分享和继续协作的工作文档。
 
 ## 自定义纪要
 
@@ -143,12 +145,18 @@ python scripts/setup_check.py
 "summary_template": "meeting"
 ```
 
-可选值：
+默认直接使用 `meeting`，它是经过真实使用调整的通用智能纪要。其他可选值：
 
-- `meeting`：会议纪要
+- `meeting`：默认智能纪要（推荐）
+- `customer`：客户沟通
 - `interview`：访谈整理
+- `podcast`：自媒体 / 播客
 - `course`：课程笔记
+- `training`：培训 / 分享
 - `project`：项目沟通
+- `research`：调研 / 座谈
+- `review`：工作复盘
+- `dictation`：灵感口述
 
 想完全自定义，就把要求写进一个 Markdown 文件，再填写：
 
@@ -175,9 +183,11 @@ python scripts/setup_check.py
 - 开启智能纪要后，文字记录会发送给你配置的 LLM API。
 - 不需要 AI 纪要时，可把 `summary_enabled` 设为 `false`。
 - API Key 只放 `.env`，不要粘进聊天、截图、README 或 `config.json`。
-- 模型价格和名称会变化，请以 [DeepSeek 官方文档](https://api-docs.deepseek.com/) 为准。
+- 默认推荐 DeepSeek V4 Flash：当前价格很低，常见纪要调用的模型费用通常可以忽略，但不是绝对零成本。
+- 也可以使用任何兼容 OpenAI Chat Completions 的模型服务，只需替换 API 地址、模型名和 Key 环境变量名。
+- 模型价格和名称会变化，请以 [DeepSeek 官方价格页](https://api-docs.deepseek.com/zh-cn/quick_start/pricing)或所选服务商文档为准。
 
-详细配置见 [DeepSeek API 与 Key 安全说明](docs/setup-api.md)。
+详细配置见 [模型 API 与 Key 安全说明](docs/setup-api.md)。
 
 ## 已经验证到什么程度？
 

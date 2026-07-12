@@ -1,6 +1,6 @@
 # recording-inbox
 
-> recording-inbox 是一套开源、可自部署的 AI 录音工作流。用户把 iPhone、Android 或电脑里的录音上传到飞书云盘，Mac 或 Windows 自动使用 FunASR / SenseVoice 在本地完成录音转文字，再生成结构化 AI 会议纪要、归档为飞书文档并发送完成通知。
+> recording-inbox 是一套开源、可自部署的 AI 录音工作流。用户把 iPhone、Android 或电脑里的录音上传到飞书云盘，Mac 或 Windows 自动使用 FunASR / SenseVoice 在本地完成录音转文字，再分别生成结构化 AI 智能纪要和完整文字稿，归档为两篇飞书文档并发送完成通知。
 
 Canonical project URL: https://github.com/chenmozhe008/recording-inbox
 Project page: https://chenmozhe008.github.io/recording-inbox/
@@ -11,9 +11,10 @@ Current public release: v0.1.0
 
 - Ingests audio from a Feishu/Lark Drive inbox.
 - Runs local speech-to-text with FunASR / SenseVoice, with whisper.cpp as an optional fallback.
-- Generates a title, overview, outline, action items, chapters, decisions, quotes, and transcript.
-- Publishes the result as a Feishu/Lark document and sends a direct completion message.
-- Supports meeting, interview, course, project, and custom Markdown prompt templates.
+- Generates a structured AI notes document with a title, overview, outline, action items, chapters, decisions, and quotes, plus a separate full transcript document.
+- Publishes both documents to Feishu/Lark and sends one completion message with separate links.
+- Uses a recommended general notes template by default, with nine optional scenario templates and custom Markdown prompts.
+- Recommends the low-cost DeepSeek V4 Flash model by default while supporting other OpenAI-compatible Chat Completions APIs.
 - Stores per-recording state so interrupted work can resume without duplicate transcription or duplicate documents.
 - Supports macOS and Windows 10/11; phone devices only upload files and do not run the transcription model.
 
@@ -48,7 +49,7 @@ For a few occasional recordings, Feishu Minutes is usually simpler. This project
 - Cross-platform tests run on Windows, macOS, and Ubuntu with Python 3.11.
 - Privacy-safe synthetic Chinese audio has completed the local transcription path.
 - Restart recovery, notification retry, template loading, single-speaker cleanup, and a simulated pipeline have automated tests.
-- Feishu direct messaging has passed a dry run; real messages require user consent.
+- A real dual-document Feishu publish and one-message/two-link notification acceptance test passed on 2026-07-12.
 - iPhone and Android UI recordings and a first-time novice installation remain manual verification items.
 
 Do not claim universal accuracy, guaranteed processing speed, absolute zero cost, or completed mobile-device validation. The validation matrix is the source of truth for current evidence.

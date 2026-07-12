@@ -1,13 +1,13 @@
 ---
 layout: default
 title: recording-inbox - 开源 AI 录音工作流
-description: 把 iPhone、Android 或电脑录音上传到飞书，Windows/macOS 自动本地转写并生成带摘要、待办、章节和文字记录的智能会议纪要。
+description: 把 iPhone、Android 或电脑录音上传到飞书，Windows/macOS 自动本地转写并生成智能纪要和完整文字稿。
 permalink: /
 ---
 
 # 录完上传，自动得到飞书智能纪要
 
-`recording-inbox` 是一套开源、可自部署的 AI 录音工作流：手机或电脑录音进入飞书云盘后，Mac 或 Windows 自动完成本地语音转文字、AI 会议纪要、飞书文档归档和结果通知。
+`recording-inbox` 是一套开源、可自部署的 AI 录音工作流：手机或电脑录音进入飞书云盘后，Mac 或 Windows 自动完成本地语音转文字、AI 智能纪要和完整文字稿的双文档归档，并发出结果通知。
 
 [查看 GitHub 仓库](https://github.com/chenmozhe008/recording-inbox) · [macOS 安装](https://github.com/chenmozhe008/recording-inbox/blob/master/docs/setup-macos.md) · [Windows 10/11 安装](https://github.com/chenmozhe008/recording-inbox/blob/master/docs/setup-windows.md) · [常见问题](https://chenmozhe008.github.io/recording-inbox/faq/)
 
@@ -19,7 +19,7 @@ permalink: /
 iPhone / Android / 电脑录音
 → 飞书云盘 inbox
 → Windows / macOS 本地 FunASR 转写
-→ AI 生成摘要、主题、待办、章节和文字记录
+→ AI 生成智能纪要，另存完整文字稿
 → 飞书文档归档
 → 飞书消息通知
 ```
@@ -29,12 +29,12 @@ iPhone / Android / 电脑录音
 - **本地转写不消耗妙记分钟数**：适合大量、长期和长录音；
 - **不是只输出逐字稿**：直接得到可浏览和继续协作的结构化纪要；
 - **设备入口统一**：iPhone、Android、聊天软件音频和电脑文件进入同一个 inbox；
-- **模板可以自己改**：支持会议、访谈、课程、项目沟通和自定义提示词；
+- **默认好用，也能按场景改**：默认通用智能纪要，另有客户、访谈、播客、课程、培训、项目、调研、复盘、口述和自定义提示词；
 - **中断后可以继续**：电脑关机、进程中断或通知失败后按已有阶段恢复；
 - **隐私和费用更可控**：音频在本地转写，只有启用 AI 纪要时才发送文字到所选模型 API；
 - **普通用户可借助 AI Agent 安装**：Codex、Claude Code 或 Cursor 可以按仓库部署手册完成安装和自检。
 
-本地转写不按分钟收费，但电脑运行和可选的 AI 纪要 API 仍可能产生少量成本。
+本地转写不按分钟收费；默认推荐低成本的 DeepSeek V4 Flash，也可配置其他 OpenAI 兼容模型。电脑运行和 API 调用仍可能产生少量成本。
 
 ## 结果长什么样？
 

@@ -98,7 +98,35 @@ class RunTests(unittest.TestCase):
             self.assertEqual(status["status"], "published")
             self.assertTrue(status["notification_sent"])
             self.assertEqual(status["display_title"], "拍摄场地与剪辑反馈")
-            self.assertEqual(len(list((base / "output").glob("*.md"))), 1)
+            outputs = list((base / "output").glob("*.md"))
+            self.assertEqual(len(outputs), 2)
+            self.assertTrue(any("智能纪要" in path.name for path in outputs))
+            self.assertTrue(any("文字稿" in path.name for path in outputs))
+
+    def test_publish_creates_two_documents_and_links_minutes_to_transcript(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            task = Path(tmp) / "task"
+            task.mkdir()
+            common.atomic_write_json(task / "manifest.json", {"title": "项目短会"})
+            (task / "minutes.md").write_text("# 项目短会\n\n## 智能纪要\n结论。", encoding="utf-8")
+            (task / "transcript.txt").write_text("[00:00:00] 原始发言。", encoding="utf-8")
+            imports = [
+                {"data": {"url": "https://example.feishu.cn/docx/transcript"}},
+                {"data": {"url": "https://example.feishu.cn/docx/minutes"}},
+            ]
+            with patch.object(run, "configured_folder", return_value="folder"), \
+                 patch.object(run, "import_markdown_as_docx", side_effect=imports) as importer, \
+                 patch.object(run, "notify_feishu", return_value=True) as notify:
+                self.assertTrue(run.publish_task(task, {"output_dir": str(Path(tmp) / "output")}))
+            self.assertEqual(importer.call_count, 2)
+            self.assertIn("文字稿：项目短会", importer.call_args_list[0].args[2])
+            published_minutes = task / "minutes-publish.md"
+            self.assertIn("打开文字稿", published_minutes.read_text(encoding="utf-8"))
+            notify.assert_called_once()
+            self.assertEqual(
+                notify.call_args.kwargs["transcript_doc_result"]["data"]["url"],
+                "https://example.feishu.cn/docx/transcript",
+            )
 
 
 if __name__ == "__main__":

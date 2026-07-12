@@ -20,6 +20,19 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 
+SUMMARY_TEMPLATES: dict[str, str] = {
+    "meeting": "默认智能纪要（推荐）",
+    "customer": "客户沟通",
+    "interview": "访谈整理",
+    "podcast": "自媒体 / 播客",
+    "course": "课程笔记",
+    "training": "培训 / 分享",
+    "project": "项目沟通",
+    "research": "调研 / 座谈",
+    "review": "工作复盘",
+    "dictation": "灵感口述",
+}
+
 
 def configure_utf8_console() -> None:
     """Windows 的旧控制台编码可能无法输出中文，不能让日志反过来打断任务。"""
@@ -277,11 +290,28 @@ def _first_http_url(obj: Any) -> str:
     return ""
 
 
+def document_url_from_result(config: dict[str, Any], doc_result: dict[str, Any] | None) -> str:
+    """从飞书导入结果或已保存状态恢复可打开的文档链接。"""
+    doc_url = _first_http_url(doc_result or {})
+    if doc_url:
+        return doc_url
+    data = (doc_result or {}).get("data", {})
+    result = data.get("result", {}) if isinstance(data.get("result"), dict) else {}
+    token = str(result.get("token") or data.get("token") or "")
+    domain = re.search(r"https://[^/\s]+", str(
+        config.get("feishu_output_folder_link")
+        or config.get("feishu_output_folder_token")
+        or ""
+    ))
+    return f"{domain.group(0)}/docx/{token}" if token and domain else ""
+
+
 def _notification_markdown(
     *,
     title: str,
     local_path: str = "",
     doc_url: str = "",
+    transcript_url: str = "",
     error: str = "",
 ) -> str:
     if error:
@@ -290,16 +320,18 @@ def _notification_markdown(
             f"{error[:300]}\n\n"
             "可查看状态和日志后重试；如急用，可先使用飞书妙记。"
         )
-    lines = [f"**录音转写和纪要已完成：{title}**"]
+    lines = [f"**录音转写和智能纪要已完成：{title}**"]
     if doc_url:
-        lines += ["", f"[打开飞书纪要]({doc_url})"]
+        lines += ["", f"[打开智能纪要]({doc_url})"]
+    if transcript_url:
+        lines += ["", f"[打开文字稿]({transcript_url})"]
     elif local_path:
         lines += ["", f"本地文件：`{local_path}`"]
     return "\n".join(lines)
 
 
-def _notification_key(title: str, local_path: str, doc_url: str, error: str) -> str:
-    payload = "|".join((title, local_path, doc_url, error[:300])).encode("utf-8")
+def _notification_key(title: str, local_path: str, doc_url: str, transcript_url: str, error: str) -> str:
+    payload = "|".join((title, local_path, doc_url, transcript_url, error[:300])).encode("utf-8")
     return "recording-inbox-" + hashlib.sha256(payload).hexdigest()[:32]
 
 
@@ -309,6 +341,7 @@ def _send_direct_notification(
     title: str,
     local_path: str = "",
     doc_url: str = "",
+    transcript_url: str = "",
     error: str = "",
 ) -> bool:
     user_id = current_user_open_id(config)
@@ -319,13 +352,14 @@ def _send_direct_notification(
         )
     lark = find_executable(config, "lark_cli", "lark-cli")
     markdown = _notification_markdown(
-        title=title, local_path=local_path, doc_url=doc_url, error=error,
+        title=title, local_path=local_path, doc_url=doc_url,
+        transcript_url=transcript_url, error=error,
     )
     run_command([
         lark, "im", "+messages-send", "--as", "user",
         "--user-id", user_id,
         "--markdown", markdown,
-        "--idempotency-key", _notification_key(title, local_path, doc_url, error),
+        "--idempotency-key", _notification_key(title, local_path, doc_url, transcript_url, error),
     ], timeout=60)
     return True
 
@@ -341,6 +375,7 @@ def _send_webhook_notification(
     title: str,
     local_path: str = "",
     doc_result: dict[str, Any] | None = None,
+    transcript_doc_result: dict[str, Any] | None = None,
     error: str = "",
 ) -> bool:
     """兼容旧配置：向飞书群自定义机器人 Webhook 发交互卡片。"""
@@ -359,29 +394,29 @@ def _send_webhook_notification(
             lines = [f"**{title}**"]
             if local_path:
                 lines += ["", f"本地已保存：{local_path}"]
-            doc_url = _first_http_url(doc_result or {})
-            if not doc_url:
-                data = (doc_result or {}).get("data", {})
-                result = data.get("result", {}) if isinstance(data.get("result"), dict) else {}
-                token = str(result.get("token") or data.get("token") or "")
-                domain = re.search(r"https://[^/\s]+", str(
-                    config.get("feishu_output_folder_link")
-                    or config.get("feishu_output_folder_token")
-                    or ""
-                ))
-                if token and domain:
-                    doc_url = f"{domain.group(0)}/docx/{token}"
+            doc_url = document_url_from_result(config, doc_result)
+            transcript_url = document_url_from_result(config, transcript_doc_result)
             actions = []
-            if doc_url:
-                lines += ["", "智能纪要 + 文字记录已整理好，点开查看："]
-                actions = [{
-                    "tag": "action",
-                    "actions": [{
+            if doc_url or transcript_url:
+                lines += ["", "智能纪要和文字稿已分别整理好："]
+                buttons = []
+                if doc_url:
+                    buttons.append({
                         "tag": "button",
-                        "text": {"tag": "plain_text", "content": "打开飞书纪要"},
+                        "text": {"tag": "plain_text", "content": "打开智能纪要"},
                         "url": doc_url,
                         "type": "primary",
-                    }],
+                    })
+                if transcript_url:
+                    buttons.append({
+                        "tag": "button",
+                        "text": {"tag": "plain_text", "content": "打开文字稿"},
+                        "url": transcript_url,
+                        "type": "default",
+                    })
+                actions = [{
+                    "tag": "action",
+                    "actions": buttons,
                 }]
         elements: list[dict[str, Any]] = [
             {"tag": "div", "text": {"tag": "lark_md", "content": "\n".join(lines)}},
@@ -405,6 +440,7 @@ def notify_feishu(
     title: str,
     local_path: str = "",
     doc_result: dict[str, Any] | None = None,
+    transcript_doc_result: dict[str, Any] | None = None,
     error: str = "",
 ) -> bool:
     """默认直达当前飞书账号；旧 Webhook 仅保留兼容和回退。"""
@@ -415,18 +451,8 @@ def notify_feishu(
         # 已明确关闭时视为无需再处理，避免后台每分钟重复尝试。
         return True
 
-    doc_url = _first_http_url(doc_result or {})
-    if not doc_url:
-        data = (doc_result or {}).get("data", {})
-        result = data.get("result", {}) if isinstance(data.get("result"), dict) else {}
-        token = str(result.get("token") or data.get("token") or "")
-        domain = re.search(r"https://[^/\s]+", str(
-            config.get("feishu_output_folder_link")
-            or config.get("feishu_output_folder_token")
-            or ""
-        ))
-        if token and domain:
-            doc_url = f"{domain.group(0)}/docx/{token}"
+    doc_url = document_url_from_result(config, doc_result)
+    transcript_url = document_url_from_result(config, transcript_doc_result)
 
     if mode == "direct":
         try:
@@ -435,6 +461,7 @@ def notify_feishu(
                 title=title,
                 local_path=local_path,
                 doc_url=doc_url,
+                transcript_url=transcript_url,
                 error=error,
             )
         except Exception as exc:
@@ -445,6 +472,7 @@ def notify_feishu(
                     title=title,
                     local_path=local_path,
                     doc_result=doc_result,
+                    transcript_doc_result=transcript_doc_result,
                     error=error,
                 )
             return False
@@ -455,6 +483,7 @@ def notify_feishu(
             title=title,
             local_path=local_path,
             doc_result=doc_result,
+            transcript_doc_result=transcript_doc_result,
             error=error,
         )
     log(f"未知 feishu_notify_mode={mode!r}，已跳过通知。")
@@ -467,6 +496,7 @@ def notify_webhook(
     title: str,
     local_path: str = "",
     doc_result: dict[str, Any] | None = None,
+    transcript_doc_result: dict[str, Any] | None = None,
     error: str = "",
 ) -> bool:
     """兼容旧调用；新代码使用 notify_feishu。"""
@@ -475,5 +505,6 @@ def notify_webhook(
         title=title,
         local_path=local_path,
         doc_result=doc_result,
+        transcript_doc_result=transcript_doc_result,
         error=error,
     )
