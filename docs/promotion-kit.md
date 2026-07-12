@@ -6,7 +6,7 @@
 
 以下入口已经真实发布，不要重复投稿：
 
-- [GitHub v0.1.0 Release](https://github.com/chenmozhe008/recording-inbox/releases/tag/v0.1.0)；
+- [GitHub v0.2.0 Release](https://github.com/chenmozhe008/recording-inbox/releases/tag/v0.2.0)；
 - [独立项目页](https://chenmozhe008.github.io/recording-inbox/)；
 - [GitHubDaily 项目推荐 #937](https://github.com/GitHubDaily/GitHubDaily/issues/937)；
 - [HelloGitHub 开源推荐 #3431](https://github.com/521xueweihan/HelloGitHub/issues/3431)；
@@ -78,18 +78,20 @@
 ### GitHub Release 标题
 
 ```text
-recording-inbox v0.1.0：录完上传，自动得到飞书智能纪要
+recording-inbox v0.2.0：智能纪要与完整文字稿双文档
 ```
 
 ### GitHub Release 摘要
 
 ```text
-首个公开版本打通了飞书 inbox、Mac/Windows 本地 FunASR 转写、可自定义智能纪要、飞书文档归档和直接消息通知。
+本版本把公开工作流升级为与成熟使用方式一致的双文档体验：每条录音分别生成智能纪要和完整文字稿，只发送一条带两个入口的飞书通知。
 
 本版本包含：
 - macOS 与 Windows 10/11 安装向导；
 - iPhone、Android 和电脑上传说明；
 - 默认智能纪要和 9 个场景模板；
+- DeepSeek V4 Flash 低成本默认配置，以及其他 OpenAI 兼容 API 支持；
+- 飞书输出文件夹有效性预检；
 - 断电续跑、幂等去重和失败重试；
 - 脱敏结果示例、故障恢复文档和跨平台 CI。
 
