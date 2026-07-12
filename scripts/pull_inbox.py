@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""从飞书云盘 inbox 拉取新音频，建成本地任务包。
+"""从飞书云盘的录音收件箱拉取新音频，建成本地任务包。
 
 工作方式：
-1. 列出 inbox 文件夹里的音频文件（快捷指令 / 手动上传的散装文件）；
+1. 列出录音收件箱里的音频文件（快捷指令 / 手动上传的散装文件）；
 2. 没处理过的（台账里没有的）下载到 data/tasks/<任务ID>/，写 manifest + status；
-3. 云端原文件挪进 inbox 下的「processed」子文件夹，保持 inbox 干净。
+3. 云端原文件挪进收件箱下的「已接收原始音频」子文件夹，保持收件箱干净。
 
 台账是 data/state/inbox-ledger.jsonl，一行一个已处理的 file_token，
 删掉某行即可让那个文件下轮重新处理。
@@ -30,7 +30,8 @@ from common import (
     update_status,
 )
 
-PROCESSED_FOLDER_NAME = "processed"
+ARCHIVED_AUDIO_FOLDER_NAME = "已接收原始音频"
+LEGACY_ARCHIVED_AUDIO_FOLDER_NAME = "processed"
 
 
 def ledger_path(config: dict[str, Any]) -> Path:
@@ -68,11 +69,15 @@ def safe_task_id(name: str) -> str:
     return clean[:60]
 
 
-def ensure_processed_folder(config: dict[str, Any], inbox_token: str, entries: list[dict[str, Any]]) -> str:
+def ensure_archived_audio_folder(config: dict[str, Any], inbox_token: str, entries: list[dict[str, Any]]) -> str:
+    """返回原始音频归档目录；保留旧 processed 目录的兼容性。"""
     for entry in entries:
-        if entry.get("type") == "folder" and entry.get("name") == PROCESSED_FOLDER_NAME:
+        if entry.get("type") == "folder" and entry.get("name") == ARCHIVED_AUDIO_FOLDER_NAME:
             return str(entry.get("token"))
-    return create_folder(config, PROCESSED_FOLDER_NAME, inbox_token)
+    for entry in entries:
+        if entry.get("type") == "folder" and entry.get("name") == LEGACY_ARCHIVED_AUDIO_FOLDER_NAME:
+            return str(entry.get("token"))
+    return create_folder(config, ARCHIVED_AUDIO_FOLDER_NAME, inbox_token)
 
 
 def archive_seen_files(
@@ -89,13 +94,13 @@ def archive_seen_files(
     if not stranded:
         return
     try:
-        processed_token = ensure_processed_folder(config, inbox_token, entries)
+        archive_token = ensure_archived_audio_folder(config, inbox_token, entries)
     except Exception as exc:
-        log(f"无法准备 processed 文件夹（下轮重试）：{exc}")
+        log(f"无法准备“{ARCHIVED_AUDIO_FOLDER_NAME}”文件夹（下轮重试）：{exc}")
         return
     for entry in stranded:
         try:
-            drive_move(config, str(entry["token"]), processed_token)
+            drive_move(config, str(entry["token"]), archive_token)
             log(f"已补归档：{entry.get('name', entry['token'])}")
         except Exception as exc:
             log(f"云端归档仍失败（下轮重试）：{entry.get('name', entry['token'])}：{exc}")
@@ -104,7 +109,7 @@ def archive_seen_files(
 def pull(config: dict[str, Any]) -> int:
     inbox_token = configured_folder(config, "inbox")
     if not inbox_token:
-        log("未配置 feishu_inbox_folder_link（飞书 inbox 文件夹链接），跳过云盘拉取。")
+        log("未配置 feishu_inbox_folder_link（录音收件箱链接），跳过云盘拉取。")
         return 0
 
     extensions = {ext.lower() for ext in config.get("supported_extensions", [".m4a", ".mp3", ".wav"])}
@@ -121,7 +126,7 @@ def pull(config: dict[str, Any]) -> int:
         return 0
 
     tasks_root = resolve_path(config.get("work_dir", "data")) / "tasks"
-    processed_token: str | None = None
+    archive_token: str | None = None
     pulled = 0
     for entry in pending:
         file_token = str(entry["token"])
@@ -151,11 +156,11 @@ def pull(config: dict[str, Any]) -> int:
         pulled += 1
         log(f"已拉取：{name} -> {task_dir.name}")
 
-        # 云端挪进 processed，失败不影响本地流程（台账已记，不会重复处理）
+        # 云端挪进原始音频归档目录，失败不影响本地流程（台账已记，不会重复处理）
         try:
-            if processed_token is None:
-                processed_token = ensure_processed_folder(config, inbox_token, entries)
-            drive_move(config, file_token, processed_token)
+            if archive_token is None:
+                archive_token = ensure_archived_audio_folder(config, inbox_token, entries)
+            drive_move(config, file_token, archive_token)
         except Exception as exc:
             log(f"云端归档失败（不影响处理）：{name}：{exc}")
     return pulled

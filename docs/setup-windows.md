@@ -49,8 +49,8 @@ python scripts\setup.py
 
 提前在飞书云盘建立：
 
-- inbox：手机或电脑上传录音；
-- output：接收智能纪要，可留空。
+- 录音收件箱：手机或电脑上传新录音；
+- 录音结果：接收智能纪要和文字稿。
 
 向导中直接粘贴完整文件夹链接，不需要自己截取 token。
 
@@ -67,7 +67,7 @@ python scripts\run.py
 首次试跑前，上传一条 30 秒以上、能听清人声的录音。成功标志：
 
 - `output\minutes\` 出现 Markdown；
-- 飞书 output 文件夹出现文档；
+- 飞书“录音结果”文件夹出现两篇文档；
 - 当前飞书账号收到完成消息；
 - `data\tasks\<录音>\status.json` 为 `published`。
 

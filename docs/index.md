@@ -17,7 +17,7 @@ permalink: /
 
 ```text
 iPhone / Android / 电脑录音
-→ 飞书云盘 inbox
+→ 飞书云盘“录音收件箱”
 → Windows / macOS 本地 FunASR 转写
 → AI 生成智能纪要，另存完整文字稿
 → 飞书文档归档
@@ -28,7 +28,7 @@ iPhone / Android / 电脑录音
 
 - **本地转写不消耗妙记分钟数**：适合大量、长期和长录音；
 - **不是只输出逐字稿**：直接得到可浏览和继续协作的结构化纪要；
-- **设备入口统一**：iPhone、Android、聊天软件音频和电脑文件进入同一个 inbox；
+- **设备入口统一**：iPhone、Android、聊天软件音频和电脑文件进入同一个“录音收件箱”；
 - **默认好用，也能按场景改**：默认通用智能纪要，另有客户、访谈、播客、课程、培训、项目、调研、复盘、口述和自定义提示词；
 - **中断后可以继续**：电脑关机、进程中断或通知失败后按已有阶段恢复；
 - **隐私和费用更可控**：音频在本地转写，只有启用 AI 纪要时才发送文字到所选模型 API；
@@ -63,6 +63,6 @@ iPhone / Android / 电脑录音
 最后必须跑环境自检和模拟测试。
 ```
 
-第一次使用时，先上传一条 30 秒以上、能听清人声的录音；在 inbox 确认文件出现后，保持处理电脑开机联网，等待飞书完成通知。没有收到结果时，按 [故障恢复指南](https://github.com/chenmozhe008/recording-inbox/blob/master/docs/troubleshooting.md) 排查。
+第一次使用时，先上传一条 30 秒以上、能听清人声的录音；在“录音收件箱”确认文件出现后，保持处理电脑开机联网，等待飞书完成通知。智能纪要和文字稿会分别进入“录音结果”。没有收到结果时，按 [故障恢复指南](https://github.com/chenmozhe008/recording-inbox/blob/master/docs/troubleshooting.md) 排查。
 
 [查看 v0.2.0 Release](https://github.com/chenmozhe008/recording-inbox/releases/tag/v0.2.0) · [提交 Issue](https://github.com/chenmozhe008/recording-inbox/issues) · [给项目一个 Star](https://github.com/chenmozhe008/recording-inbox)

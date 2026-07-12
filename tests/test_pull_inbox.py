@@ -31,7 +31,29 @@ class PullInboxTests(unittest.TestCase):
 
         self.assertEqual(pulled, 0)
         drive_move.assert_called_once_with(config, "already-seen", "processed-token")
+        _create_folder.assert_called_once_with(config, pull_inbox.ARCHIVED_AUDIO_FOLDER_NAME, "inbox-token")
         drive_download.assert_not_called()
+
+    @mock.patch.object(pull_inbox, "create_folder")
+    def test_legacy_processed_folder_is_reused(self, create_folder: mock.Mock) -> None:
+        token = pull_inbox.ensure_archived_audio_folder(
+            {}, "inbox-token", [{"type": "folder", "token": "legacy-token", "name": "processed"}],
+        )
+
+        self.assertEqual(token, "legacy-token")
+        create_folder.assert_not_called()
+
+    @mock.patch.object(pull_inbox, "create_folder")
+    def test_named_archive_folder_wins_over_legacy_processed_folder(self, create_folder: mock.Mock) -> None:
+        token = pull_inbox.ensure_archived_audio_folder(
+            {}, "inbox-token", [
+                {"type": "folder", "token": "legacy-token", "name": "processed"},
+                {"type": "folder", "token": "named-token", "name": pull_inbox.ARCHIVED_AUDIO_FOLDER_NAME},
+            ],
+        )
+
+        self.assertEqual(token, "named-token")
+        create_folder.assert_not_called()
 
 
 if __name__ == "__main__":

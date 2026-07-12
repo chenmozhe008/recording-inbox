@@ -1,6 +1,6 @@
 # 给 AI Agent 的部署手册
 
-用户希望部署 `recording-inbox`：飞书 inbox → 电脑本地转写 → AI 智能纪要 → 飞书文档和消息。
+用户希望部署 `recording-inbox`：飞书“录音收件箱” → 电脑本地转写 → AI 智能纪要 → 飞书“录音结果”和消息。
 
 ## 边界
 
@@ -19,7 +19,7 @@
 ## 需要用户本人完成
 
 1. 飞书扫码授权；
-2. 提供 inbox / output 文件夹完整链接；
+2. 提供“录音收件箱”/“录音结果”文件夹完整链接；
 3. 在本机安全输入 DeepSeek API Key；
 4. 决定是否发送真实测试通知。
 
@@ -58,7 +58,7 @@ python scripts\setup_check.py
 2. 用户上传一条 30 秒以上测试录音；
 3. 手动运行 `scripts/run.py`；
 4. `output/minutes/` 有 Markdown；
-5. output 文件夹有飞书文档；
+5. “录音结果”文件夹有飞书文档；
 6. 经用户同意后，`--test-notification` 或真实完成通知成功；
 7. `status.json` 为 `published`；
 8. 才安装 launchd / Windows Task Scheduler。

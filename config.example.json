@@ -1,6 +1,6 @@
 {
-  "feishu_inbox_folder_link": "贴你的飞书 inbox 文件夹链接（浏览器地址栏整条粘进来即可；见 docs/setup-feishu-app.md）",
-  "feishu_output_folder_link": "纪要文档输出到哪个飞书文件夹，同样贴文件夹链接；留空则只出本地 Markdown",
+  "feishu_inbox_folder_link": "贴你的飞书“录音收件箱”文件夹链接（浏览器地址栏整条粘进来即可；见 docs/setup-feishu-app.md）",
+  "feishu_output_folder_link": "贴你的飞书“录音结果”文件夹链接；留空则只出本地 Markdown",
   "feishu_notify_mode": "direct",
   "feishu_notify_user_id": "auto",
   "feishu_notify_webhook": "",
