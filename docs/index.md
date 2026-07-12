@@ -54,7 +54,7 @@ iPhone / Android / 电脑录音
 
 ## 开始使用
 
-把下面这段发给你已经在用的 AI 编程工具即可。Claude Code、Codex、Gemini CLI、Cursor、Windsurf、GitHub Copilot、Cline、Roo Code、Qoder、CodeBuddy、Trae、WorkBuddy、龙虾、Hermes、zcode 等都可以；这不是限定名单。
+把下面这段发给你已经在用的 AI Agent 工具即可。国外的 Claude Code、Codex、龙虾，国产的 WorkBuddy、Trea、Zcode 等，任选一个都可以。
 
 ```text
 帮我部署 https://github.com/chenmozhe008/recording-inbox

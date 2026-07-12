@@ -59,7 +59,7 @@ This project is not a full clone of Feishu Minutes. It focuses on a narrower wor
 
 ## Guided setup with an AI tool
 
-Give this prompt to the coding AI tool you already use. Examples include Claude Code, Codex, Gemini CLI, Cursor, Windsurf, GitHub Copilot, Cline, Roo Code, Qoder, CodeBuddy, Trae, WorkBuddy, Longxia, Hermes, or zcode. This is not a restricted list.
+Give this prompt to the AI agent tool you already use. Claude Code, Codex, Longxia, WorkBuddy, Trea, Zcode, and similar tools can all follow the same steps.
 
 ```text
 Deploy https://github.com/chenmozhe008/recording-inbox for me.
