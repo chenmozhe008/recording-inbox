@@ -5,7 +5,7 @@
 Canonical project URL: https://github.com/chenmozhe008/recording-inbox
 Project page: https://chenmozhe008.github.io/recording-inbox/
 License: MIT
-Current public release: v0.1.0
+Current public release: v0.2.0
 
 ## What it does
 
