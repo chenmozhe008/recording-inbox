@@ -39,7 +39,7 @@ macOS 和 Windows 10/11 都支持，各有完整安装教程：[macOS 安装](se
 
 ## 不会编程，能自己装吗？
 
-可以让你已经在用的 AI 编程工具代装，例如 Claude Code、Codex、Gemini CLI、Cursor、Windsurf、GitHub Copilot、Cline、Roo Code、Qoder、CodeBuddy、Trae、WorkBuddy、龙虾、Hermes 或 zcode。这只是示例，不限定工具。把仓库地址和下面这句话发给它：“根据我的电脑选择 macOS 或 Windows 安装路径；需要扫码、粘贴链接或填写 API Key 时再让我操作；最后跑环境自检。”手动安装也有一步步的教程。
+可以让你已经在用的 AI Agent 工具代装：国外的 Claude Code、Codex、龙虾，国产的 WorkBuddy、Trea、Zcode 等，任选一个都可以。把仓库地址和下面这句话发给它：“根据我的电脑选择 macOS 或 Windows 安装路径；需要扫码、粘贴链接或填写 API Key 时再让我操作；最后跑环境自检。”手动安装也有一步步的教程。
 
 ## 转写准确率有多高？
 
