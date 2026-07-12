@@ -71,7 +71,7 @@ python scripts/setup_check.py --test-notification
 
 只有想让快捷指令直接调用飞书 API 上传时才需要 App ID / App Secret。日常手动上传、电脑拖拽、转写、纪要和结果通知都不依赖它。
 
-配置步骤见 [手机上传教程](upload-from-phone.md#iphone-快捷指令高级)。App Secret 不要发给 AI Agent、不要截图、不要提交 GitHub。
+配置步骤见 [手机上传教程](upload-from-phone.md#iphone-快捷指令高级)。App Secret 不要发给任何人、不要截图、不要提交 GitHub。
 
 ## 常见问题
 

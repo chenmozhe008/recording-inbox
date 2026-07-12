@@ -98,7 +98,7 @@ class RepositoryTests(unittest.TestCase):
         ).strip()
         self.assertEqual(indexnow_key, "4f9b99d47fb3f1286004a87f75b94062")
 
-        promotion = (ROOT / "docs" / "promotion-kit.md").read_text(encoding="utf-8")
+        promotion = (ROOT / "docs" / "maintainers" / "promotion-kit.md").read_text(encoding="utf-8")
         for public_submission in (
             "https://github.com/GitHubDaily/GitHubDaily/issues/937",
             "https://github.com/521xueweihan/HelloGitHub/issues/3431",
@@ -117,7 +117,7 @@ class RepositoryTests(unittest.TestCase):
         payload = json.loads(match.group(1))
         self.assertEqual(payload["@type"], "SoftwareSourceCode")
         self.assertEqual(payload["codeRepository"], "https://github.com/chenmozhe008/recording-inbox")
-        self.assertEqual(payload["softwareVersion"], "0.1.0")
+        self.assertEqual(payload["softwareVersion"], "0.2.0")
 
 
 if __name__ == "__main__":

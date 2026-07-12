@@ -35,7 +35,7 @@ DEEPSEEK_API_KEY=YOUR_API_KEY
 `.env` 已被 `.gitignore` 排除。不要把真实 Key：
 
 - 写进 `config.json`；
-- 发给 AI Agent；
+- 粘贴到聊天窗口或发给他人；
 - 放进截图或录屏；
 - 提交到 GitHub；
 - 发到 Issue 或日志附件。
