@@ -30,7 +30,7 @@ brew install python@3.12 ffmpeg node
 npm install -g @larksuite/cli
 python3.12 -m venv asr-venv
 ./asr-venv/bin/python -m pip install --upgrade pip setuptools wheel
-./asr-venv/bin/pip install funasr modelscope torch torchaudio soundfile scikit-learn zhconv truststore
+./asr-venv/bin/pip install -r requirements/asr-macos.txt
 lark-cli auth login --domain drive,docs --scope "im:message.send_as_user im:message"
 python3 scripts/setup.py
 python3 scripts/setup_check.py
@@ -42,7 +42,7 @@ python3 scripts/setup_check.py
 npm install -g @larksuite/cli
 python -m venv asr-venv
 asr-venv\Scripts\python.exe -m pip install --upgrade pip setuptools wheel
-asr-venv\Scripts\pip.exe install funasr modelscope torch torchaudio soundfile scikit-learn zhconv truststore imageio-ffmpeg
+asr-venv\Scripts\pip.exe install -r requirements\asr-windows.txt
 lark-cli auth login --domain drive,docs --scope "im:message.send_as_user im:message"
 python scripts\setup.py
 python scripts\setup_check.py

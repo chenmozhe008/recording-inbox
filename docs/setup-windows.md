@@ -34,10 +34,12 @@ where.exe lark-cli.cmd
 ```powershell
 python -m venv asr-venv
 asr-venv\Scripts\python.exe -m pip install --upgrade pip setuptools wheel
-asr-venv\Scripts\pip.exe install -i https://pypi.tuna.tsinghua.edu.cn/simple funasr modelscope torch torchaudio soundfile scikit-learn zhconv truststore imageio-ffmpeg
+asr-venv\Scripts\pip.exe install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements\asr-windows.txt
 ```
 
 `imageio-ffmpeg` 自带 ffmpeg，通常无需单独下载。
+
+依赖文件固定了仓库真实验证过的 FunASR/ModelScope 核心版本；PyTorch 仍由 pip 按当前 Windows 和 Python 选择兼容 wheel。首次转写会下载 SenseVoice、VAD、标点和说话人模型，完成后保留在 ModelScope 本机缓存供后续任务复用；首次运行时请保持网络稳定。
 
 如果 `editdistance` 或其他包编译失败，不要手工往 `site-packages` 伪造包。先删除 `asr-venv`，换 Python 3.11/3.12 重新创建环境；仍失败再提交 Issue，并附完整错误和 Python 版本。
 

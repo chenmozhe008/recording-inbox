@@ -23,10 +23,12 @@ npm install -g @larksuite/cli
 ```bash
 python3.12 -m venv asr-venv
 ./asr-venv/bin/python -m pip install --upgrade pip setuptools wheel
-./asr-venv/bin/pip install funasr modelscope torch torchaudio soundfile scikit-learn zhconv truststore
+./asr-venv/bin/pip install -r requirements/asr-macos.txt
 ```
 
-首次转写会下载模型，耗时和磁盘占用明显高于后续运行。
+依赖文件固定了仓库真实验证过的 FunASR/ModelScope 核心版本；PyTorch 仍由 pip 按当前 Mac 芯片和 Python 选择兼容 wheel。
+
+首次转写会下载 SenseVoice、VAD、标点和说话人模型，耗时和磁盘占用明显高于后续运行。下载完成后模型会留在 ModelScope 本机缓存，后续任务直接复用；首次运行时请保持网络稳定，不要中途清理缓存目录。
 
 ## 4. 授权飞书
 

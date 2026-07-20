@@ -13,7 +13,7 @@
 - [GitHubDaily 项目推荐 #937](https://github.com/GitHubDaily/GitHubDaily/issues/937)；
 - [HelloGitHub 开源推荐 #3431](https://github.com/521xueweihan/HelloGitHub/issues/3431)；
 - [阮一峰科技爱好者周刊投稿 #10668](https://github.com/ruanyf/weekly/issues/10668)；
-- [FunASR 官方生态收录 showcase #3294](https://github.com/modelscope/FunASR/issues/3294)（2026-07-20 投稿，等待收录进 community_projects.md）。
+- [FunASR 官方生态收录 showcase #3294](https://github.com/modelscope/FunASR/issues/3294)（已通过 [#3295](https://github.com/modelscope/FunASR/pull/3295) 收录进中英文社区集成页）。
 
 小红书和公众号由项目作者自行发布，本仓库只保留可复用素材。
 
