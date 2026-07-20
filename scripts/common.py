@@ -448,7 +448,7 @@ def notify_feishu(
     if not mode:
         mode = "webhook" if _valid_webhook(config) else "direct"
     if mode in {"off", "none", "disabled"}:
-        # 已明确关闭时视为无需再处理，避免后台每分钟重复尝试。
+        # 已明确关闭时视为无需再处理，避免后台每轮重复尝试。
         return True
 
     doc_url = document_url_from_result(config, doc_result)

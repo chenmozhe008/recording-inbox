@@ -10,7 +10,7 @@
 
   "summary_enabled": true,
   "summary_api_base": "https://api.deepseek.com",
-  "summary_model": "deepseek-v4-flash",
+  "summary_model": "deepseek-v4-pro",
   "summary_api_key_env": "DEEPSEEK_API_KEY",
   "summary_template": "meeting",
   "summary_prompt_file": "",

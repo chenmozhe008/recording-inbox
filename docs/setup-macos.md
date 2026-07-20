@@ -88,7 +88,7 @@ launchctl bootstrap gui/$(id -u) \
   ~/Library/LaunchAgents/com.example.recording-inbox.plist
 ```
 
-之后每分钟自动检查一次。电脑关机时录音留在飞书，重新开机登录后自动继续。
+之后每 3 分钟自动检查一次。电脑关机时录音留在飞书，重新开机登录后自动继续。
 
 ## 卸载后台任务
 

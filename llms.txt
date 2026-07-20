@@ -14,7 +14,7 @@ Current public release: v0.2.0
 - Generates a structured AI notes document with a title, overview, outline, action items, chapters, decisions, and quotes, plus a separate full transcript document.
 - Publishes both documents to Feishu/Lark and sends one completion message with separate links.
 - Uses a recommended general notes template by default, with nine optional scenario templates and custom Markdown prompts.
-- Recommends the low-cost DeepSeek V4 Flash model by default while supporting other OpenAI-compatible Chat Completions APIs.
+- Recommends the DeepSeek V4 Pro model by default (better summaries at a still-low cost) while supporting other OpenAI-compatible Chat Completions APIs.
 - Stores per-recording state so interrupted work can resume without duplicate transcription or duplicate documents.
 - Supports macOS and Windows 10/11; phone devices only upload files and do not run the transcription model.
 

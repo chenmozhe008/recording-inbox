@@ -79,7 +79,7 @@ python scripts\run.py
 windows\setup_scheduled_task.bat
 ```
 
-任务计划每分钟静默运行一次。查看：
+任务计划每 3 分钟静默运行一次。查看：
 
 ```powershell
 schtasks /query /tn "recording-inbox"

@@ -175,7 +175,7 @@ def call_llm(prompt: str, config: dict[str, Any]) -> str:
     if not api_key:
         raise RuntimeError(f"缺少 {key_env}（写在项目根目录 .env 里）")
     base_url = str(config.get("summary_api_base", "https://api.deepseek.com")).rstrip("/")
-    model = str(config.get("summary_model", "deepseek-v4-flash"))
+    model = str(config.get("summary_model", "deepseek-v4-pro"))
     body = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
@@ -232,7 +232,7 @@ def generate_minutes(task_dir: Path, config: dict[str, Any]) -> bool:
 
     key_env = str(config.get("summary_api_key_env") or "DEEPSEEK_API_KEY")
     if not os.environ.get(key_env, "").strip():
-        # 没配 key 不算失败——失败态会被 launchd 每分钟重试，永远卡在这里。
+        # 没配 key 不算失败——失败态会被 launchd 每 3 分钟重试，永远卡在这里。
         # 降级为只出文字记录，让闭环照样走完；想要智能纪要的用户看提示补 key 即可。
         (task_dir / "minutes.md").write_text(
             f"# {manifest['title']}\n\n"
@@ -265,7 +265,7 @@ def generate_minutes(task_dir: Path, config: dict[str, Any]) -> bool:
     # 文字稿由发布阶段单独生成、单独导入飞书；纪要文件只承载可快速阅读的内容。
     (task_dir / "minutes.md").write_text(summary, encoding="utf-8")
     update_status(task_dir, "minutes_ready", "智能纪要已生成。", display_title=generated_title)
-    record_stage_finished(task_dir, config, "summary", backend=str(config.get("summary_model", "deepseek-v4-flash")))
+    record_stage_finished(task_dir, config, "summary", backend=str(config.get("summary_model", "deepseek-v4-pro")))
     return True
 
 

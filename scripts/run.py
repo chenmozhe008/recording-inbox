@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """主流程：拉取 → 转写 → 纪要 → 发布。设计成幂等单趟，跑一次推进一轮。
 
-- launchd/cron 每分钟调一次即可（见 launchd/ 目录模板）；
+- launchd/cron 每 3 分钟调一次即可（见 launchd/ 目录模板）；
 - 用锁文件防止上一轮还没跑完又起一轮（长录音转写可能几十分钟）；
 - 发布 = 本地 Markdown（必出）+ 飞书在线文档（配了 feishu_output_folder_link 才发）。
 """
@@ -133,8 +133,8 @@ def publish_task(task_dir: Path, config: dict[str, Any]) -> bool:
 def notify_failure(task_dir: Path, config: dict[str, Any]) -> None:
     """某一步失败时，把失败原因也推到飞书群，别让录音石沉大海。
 
-    launchd 每分钟重试一次失败任务，如果每次失败都发一张告警卡，
-    群里一小时就是 60 张。所以按「失败状态名」去重：同一个阶段的失败
+    launchd 每 3 分钟重试一次失败任务，如果每次失败都发一张告警卡，
+    群里一小时就是 20 张。所以按「失败状态名」去重：同一个阶段的失败
     只告警一次；等它换了阶段（比如转写修好了、纪要又失败）才会再发。
     """
     status = read_status(task_dir)
