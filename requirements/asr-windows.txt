@@ -1,0 +1,5 @@
+-r asr-common.txt
+
+# Let pip select wheels compatible with the current Windows CPU and Python.
+torch
+imageio-ffmpeg

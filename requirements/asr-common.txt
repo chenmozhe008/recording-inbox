@@ -1,0 +1,9 @@
+# Tested ASR core. Update these pins only after a clean-environment inference test.
+funasr==1.3.10
+modelscope==1.37.1
+
+# Runtime helpers used by the transcription and speaker-separation pipeline.
+soundfile>=0.12.1,<1
+scikit-learn==1.7.2
+zhconv>=1.4,<2
+truststore>=0.10,<1

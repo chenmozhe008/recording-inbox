@@ -58,6 +58,22 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("/path/to/recording-inbox/asr-venv/bin/python", text)
         self.assertNotIn("<string>/usr/bin/python3</string>", text)
 
+    def test_asr_install_uses_tested_core_baseline(self) -> None:
+        common = (ROOT / "requirements" / "asr-common.txt").read_text(encoding="utf-8")
+        self.assertIn("funasr==1.3.10", common)
+        self.assertIn("modelscope==1.37.1", common)
+
+        for platform_file in ("asr-macos.txt", "asr-windows.txt"):
+            text = (ROOT / "requirements" / platform_file).read_text(encoding="utf-8")
+            self.assertIn("-r asr-common.txt", text)
+            self.assertIn("torch", text)
+            self.assertNotIn("torchaudio", text)
+
+        macos = (ROOT / "docs" / "setup-macos.md").read_text(encoding="utf-8")
+        windows = (ROOT / "docs" / "setup-windows.md").read_text(encoding="utf-8")
+        self.assertIn("requirements/asr-macos.txt", macos)
+        self.assertIn("requirements\\asr-windows.txt", windows)
+
     def test_public_discovery_entrypoints_are_consistent(self) -> None:
         required = [
             "README.md",

@@ -8,14 +8,15 @@
 
 | 范围 | 证据 | 状态 |
 |---|---|---|
-| Windows / macOS / Ubuntu Python 3.11 | GitHub Actions 编译并运行 20 项单元与模拟端到端测试 | 已通过 |
-| macOS Python 3.12 / 当前 Python | 本机各运行 20 项测试 | 已通过 |
+| Windows / macOS / Ubuntu Python 3.11 | GitHub Actions 编译并运行仓库单元与模拟端到端测试 | 已通过 |
+| macOS Python 3.12 / 当前 Python | 本机运行完整仓库测试 | 已通过 |
 | 中文本地转写 | 12.65 秒无隐私合成中文录音，`funasr-sensevoice` 输出有效简体中文，状态为 `transcript_ready` | 已通过 |
 | 单人录音标签 | 提示词规则和生成后处理测试均不输出无意义的“说话人1” | 已通过 |
 | 默认模板与模型 API | 2026-07-12 使用脱敏示例文字稿调用 DeepSeek V4 Flash，标题及 6 个必需章节完整返回 | 已通过真实验收 |
 | 默认模型切换 deepseek-v4-pro | 2026-07-20 默认模型由 Flash 改为 Pro，接口与调用方式不变，尚未用真实文字稿跑 Pro | 待真实验收 |
 | 10 个内置模板 | 默认、客户、访谈、播客、课程、培训、项目、调研、复盘和口述均由自动测试加载 | 已通过 |
-| 配置与依赖 | 本机 `python3 scripts/setup_check.py` 全部通过 | 已通过 |
+| ASR 核心基线 | 实跑环境使用 FunASR 1.3.10 / ModelScope 1.37.1；平台依赖文件和自检版本提示由自动测试约束 | 已通过 |
+| 配置与依赖 | 本机 `python3 scripts/setup_check.py` 全部通过；首次模型缓存另见平台安装指南 | 已通过 |
 | 飞书双文档与直达消息 | 2026-07-12 创建独立智能纪要和文字稿，并向当前飞书账号发出一条双入口完成消息 | 已通过真实验收 |
 | iPhone 上传到飞书 inbox | 需按 [真机录屏清单](mobile-demo-checklist.md) 走完并保留视频 | 待真机验证 |
 | Android 上传到飞书 inbox | 当前开发机没有 Android 设备、ADB 或模拟器 | 待真机验证 |

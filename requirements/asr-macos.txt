@@ -1,0 +1,4 @@
+-r asr-common.txt
+
+# Let pip select wheels compatible with the current macOS CPU and Python.
+torch

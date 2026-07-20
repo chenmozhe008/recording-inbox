@@ -13,6 +13,7 @@ import platform
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Any
 
 from common import (
     SUMMARY_TEMPLATES,
@@ -29,6 +30,12 @@ ROOT = Path(__file__).resolve().parents[1]
 OK = "✅"
 FAIL = "❌"
 WARN = "⚠️ "
+
+TESTED_ASR_BASELINE = {
+    "funasr": "1.3.10",
+    "modelscope": "1.37.1",
+}
+ASR_VERSION_PACKAGES = ("funasr", "modelscope", "torch")
 
 
 def check(label: str, ok: bool, hint: str = "") -> bool:
@@ -57,6 +64,39 @@ def run_quiet(command: list[str], *, timeout: int = 30) -> subprocess.CompletedP
     if os.name == "nt":
         kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     return subprocess.run(command, **kwargs)
+
+
+def read_asr_versions(python: str) -> dict[str, str]:
+    """Read package metadata inside the configured ASR interpreter."""
+    script = (
+        "import importlib.metadata as m\n"
+        "import json\n"
+        f"names = {ASR_VERSION_PACKAGES!r}\n"
+        "versions = {}\n"
+        "for name in names:\n"
+        "    try:\n"
+        "        versions[name] = m.version(name)\n"
+        "    except m.PackageNotFoundError:\n"
+        "        pass\n"
+        "print(json.dumps(versions))\n"
+    )
+    try:
+        result = run_quiet([python, "-c", script], timeout=60)
+    except (subprocess.SubprocessError, OSError):
+        return {}
+    if result.returncode != 0:
+        return {}
+    try:
+        payload: Any = json.loads(result.stdout.strip())
+    except (json.JSONDecodeError, TypeError):
+        return {}
+    if not isinstance(payload, dict):
+        return {}
+    return {str(name).lower(): str(version) for name, version in payload.items() if version}
+
+
+def asr_baseline_matches(versions: dict[str, str]) -> bool:
+    return all(versions.get(name) == version for name, version in TESTED_ASR_BASELINE.items())
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -197,11 +237,8 @@ def main(argv: list[str] | None = None) -> int:
 
     # 5. 转写后端：FunASR 或 whisper.cpp 至少一个
     funasr_py = str(config.get("executables", {}).get("funasr_python", "")) or "python3"
-    funasr_ok = False
-    try:
-        funasr_ok = run_quiet([funasr_py, "-c", "import funasr"], timeout=60).returncode == 0
-    except (subprocess.SubprocessError, OSError):
-        pass
+    asr_versions = read_asr_versions(funasr_py)
+    funasr_ok = bool(asr_versions.get("funasr"))
     whisper_bin = str(config.get("executables", {}).get("whisper_cpp", ""))
     whisper_ok = bool(
         (whisper_bin and Path(whisper_bin).expanduser().is_file())
@@ -209,8 +246,20 @@ def main(argv: list[str] | None = None) -> int:
     )
     if funasr_ok:
         print(f"{OK} FunASR 可用（主转写，中文效果好）")
+        version_text = " / ".join(
+            f"{name} {asr_versions[name]}"
+            for name in ASR_VERSION_PACKAGES
+            if asr_versions.get(name)
+        )
+        print(f"   ASR 版本：{version_text}")
+        warn(
+            "FunASR 核心版本与仓库验证基线一致",
+            asr_baseline_matches(asr_versions),
+            "当前版本不一定有问题；新安装建议按 requirements/asr-macos.txt "
+            "或 requirements/asr-windows.txt 重建环境。",
+        )
     else:
-        print(f"{WARN}FunASR 不可用（pip install funasr modelscope torch）")
+        print(f"{WARN}FunASR 不可用（请按 requirements/asr-macos.txt 或 asr-windows.txt 安装）")
     if whisper_ok:
         model = str(config.get("executables", {}).get("whisper_model", ""))
         whisper_ok = check(
