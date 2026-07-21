@@ -47,6 +47,42 @@ class MinutesTests(unittest.TestCase):
         summary = "说话人1：提出方案；说话人2：表示同意。"
         self.assertEqual(minutes.suppress_single_speaker_labels(summary, transcript), summary)
 
+    def test_summary_speaker_aliases_are_consistent_and_protect_source_sections(self) -> None:
+        summary = """# 项目讨论
+
+## 智能纪要
+说话人2提出方案。
+
+## 主题大纲
+- 说话人1表示同意，发言人2方负责推进。
+
+## 待办
+- [ ] speaker_2整理资料，speaker_1确认。
+
+## 智能章节
+### [00:00:00] 方案讨论
+说话人1回应说话人2。
+
+## 金句时刻
+> 说话人2：先把原型跑通。
+"""
+
+        cleaned = minutes.neutralize_summary_speaker_numbers(summary)
+
+        self.assertIn("一方提出方案", cleaned)
+        self.assertIn("另一方表示同意，一方负责推进", cleaned)
+        self.assertIn("一方整理资料，另一方确认", cleaned)
+        self.assertIn("说话人1回应说话人2", cleaned)
+        self.assertIn("说话人2：先把原型跑通", cleaned)
+        self.assertNotIn("一方方", cleaned)
+
+    def test_single_summary_alias_uses_neutral_phrase(self) -> None:
+        summary = "# 记录\n\n## 智能纪要\n说话人3提出先做测试。\n"
+        self.assertIn(
+            "有发言人提出先做测试",
+            minutes.neutralize_summary_speaker_numbers(summary),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
