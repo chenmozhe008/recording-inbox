@@ -83,8 +83,9 @@ def clean_text(text: str) -> str:
     raw = re.sub(r"([，。！？、；：])\1+", r"\1", raw)
     raw = re.sub(r"\s+\.\s+", " ", raw)         # 孤立英文句点噪声 “ . ”
     raw = re.sub(r"[ \t]{2,}", " ", raw)
-    # 去掉行首残留的孤立英文碎片/标点（如剥标记后留下的 “ . ”“Yeah .”）
-    raw = raw.strip(" .，,。")
+    # 只清理行首残留标点。句末标点承载断句信息，不能一起 strip 掉。
+    raw = raw.strip()
+    raw = raw.lstrip(" .，,。")
     raw = collapse_repeats(raw)                 # 折叠复读幻觉
     raw = to_simplified(raw)                    # 统一简体
     return raw.strip()
