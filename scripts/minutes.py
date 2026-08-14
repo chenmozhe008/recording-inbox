@@ -234,7 +234,9 @@ def call_llm(prompt: str, config: dict[str, Any]) -> str:
     if not api_key:
         raise RuntimeError(f"缺少 {key_env}（写在项目根目录 .env 里）")
     base_url = str(config.get("summary_api_base", "https://api.deepseek.com")).rstrip("/")
-    model = str(config.get("summary_model", "deepseek-v4-pro"))
+    # 默认 Flash：价格是 Pro 的 1/3，纪要场景实测够用。想要更强的整理质量，
+    # 在 config.json 把 summary_model 改成 "deepseek-v4-pro" 即可，接口和调用方式完全一样。
+    model = str(config.get("summary_model", "deepseek-v4-flash"))
     body = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
@@ -325,7 +327,7 @@ def generate_minutes(task_dir: Path, config: dict[str, Any]) -> bool:
     # 文字稿由发布阶段单独生成、单独导入飞书；纪要文件只承载可快速阅读的内容。
     (task_dir / "minutes.md").write_text(summary, encoding="utf-8")
     update_status(task_dir, "minutes_ready", "智能纪要已生成。", display_title=generated_title)
-    record_stage_finished(task_dir, config, "summary", backend=str(config.get("summary_model", "deepseek-v4-pro")))
+    record_stage_finished(task_dir, config, "summary", backend=str(config.get("summary_model", "deepseek-v4-flash")))
     return True
 
 

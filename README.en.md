@@ -23,7 +23,7 @@ Recording is easy. The repetitive work starts afterwards: moving files, waiting 
 | Controlled privacy and cost | Audio transcription stays local; transcript text reaches an external API only when AI notes are enabled |
 | AI-tool-friendly setup | Use the coding AI tool you already have to follow the installation guide and run checks |
 
-Local transcription is not billed per minute. DeepSeek V4 Pro is the recommended default for notes: it produces better summaries, and although it costs more than Flash, a typical minutes call is still only a few cents. Any OpenAI-compatible Chat Completions provider can be configured. Computer usage and API calls can still have a cost; the project does not promise absolute zero cost.
+Local transcription is not billed per minute. DeepSeek V4 Flash is the default for notes: it costs a third of Pro, and a typical minutes call runs to just a cent or two. Switch `summary_model` to `deepseek-v4-pro` for better summaries — same API, same call, config change only. Any OpenAI-compatible Chat Completions provider can be configured. Computer usage and API calls can still have a cost; the project does not promise absolute zero cost.
 
 ## Good fits
 

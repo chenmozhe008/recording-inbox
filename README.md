@@ -94,7 +94,7 @@ python scripts/setup_check.py
 
 1. 粘贴飞书“录音收件箱”和“录音结果”文件夹链接；
 2. 直接使用默认智能纪要，或按需要选择其他场景模板；
-3. 安全输入模型 API Key（默认推荐 DeepSeek V4 Pro，只写本机 `.env`）；
+3. 安全输入模型 API Key（默认用 DeepSeek V4 Flash，只写本机 `.env`）；
 4. 自动识别当前飞书账号，用已有授权直接给自己发结果消息。
 
 不需要手工截取 folder token，也不需要为了通知创建群机器人 Webhook。
@@ -184,7 +184,7 @@ python scripts/setup_check.py
 - 开启智能纪要后，文字记录会发送给你配置的 LLM API。
 - 不需要 AI 纪要时，可把 `summary_enabled` 设为 `false`。
 - API Key 只放 `.env`，不要粘进聊天、截图、README 或 `config.json`。
-- 默认推荐 DeepSeek V4 Pro：纪要质量更好，价格高于 Flash 但仍然很低，常见纪要调用通常只有几分钱，但不是绝对零成本。追求更低成本可换 `deepseek-v4-flash`。
+- 默认用 DeepSeek V4 Flash：价格是 Pro 的三分之一，常见纪要调用通常只有一两分钱，但不是绝对零成本。想要更好的整理质量，把 `summary_model` 换成 `deepseek-v4-pro` 即可，接口和调用方式完全一样。
 - 也可以使用任何兼容 OpenAI Chat Completions 的模型服务，只需替换 API 地址、模型名和 Key 环境变量名。
 - 模型价格和名称会变化，请以 [DeepSeek 官方价格页](https://api-docs.deepseek.com/zh-cn/quick_start/pricing)或所选服务商文档为准。
 

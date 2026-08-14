@@ -129,8 +129,9 @@ def main() -> int:
         )
         key_env = str(config.get("summary_api_key_env") or "DEEPSEEK_API_KEY")
         print(
-            "\n模型默认使用 DeepSeek V4 Pro（推荐，纪要质量更好，单次调用通常只有几分钱）。"
-            "已有其他 OpenAI 兼容 API 时，可稍后按 docs/setup-api.md 修改配置。"
+            "\n模型默认使用 DeepSeek V4 Flash（成本低，单次纪要调用通常只有一两分钱）。"
+            "想要更好的纪要质量可改成 deepseek-v4-pro（价格约 3 倍）；"
+            "已有其他 OpenAI 兼容 API 时，也可稍后按 docs/setup-api.md 修改配置。"
         )
         load_dotenv()
         if not os.environ.get(key_env):
