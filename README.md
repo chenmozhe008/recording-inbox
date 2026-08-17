@@ -1,3 +1,5 @@
+
+
 **简体中文** | [English](README.en.md)
 
 # recording-inbox - 开源 AI 录音工作流
@@ -133,7 +135,7 @@ python scripts/setup_check.py
 带时间戳的完整文字记录
 ```
 
-完成后飞书只发送一条通知，其中提供“打开智能纪要”和“打开文字稿”两个入口。标题会根据内容生成；单人录音不会显示没有意义的“说话人1”，多人录音会保留编号区分观点。查看 [脱敏结果示例](examples/sample-minutes.md) 和 [对应文字记录](examples/sample-transcript.txt)。
+完成后飞书只发送一条通知，其中提供“打开智能纪要”和“打开文字稿”两个入口。标题会根据内容生成；单人录音不会显示没有意义的“说话人1”，多人录音会在智能章节中保留编号区分观点。查看 [脱敏结果示例](examples/sample-minutes.md) 和 [对应文字记录](examples/sample-transcript.txt)。
 
 这意味着你拿到的不是一份需要重新阅读和加工的原始文本，而是一组可分别浏览、检索、分享和继续协作的工作文档。
 
