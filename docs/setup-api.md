@@ -4,7 +4,7 @@ AI 智能纪要是可选功能。本地转写不需要 API Key；关闭 `summary
 
 ## 默认推荐
 
-仓库默认使用 `deepseek-v4-flash`。它的价格是 Pro 的三分之一，常见录音纪要的单次调用通常只有一两分钱，并非绝对零成本。**想要更好的整理质量，在 `config.json` 里把 `summary_model` 改成 `deepseek-v4-pro` 即可**——两者是独立的 model id，接口、参数、调用方式完全一样，改完不需要动任何代码。
+仓库默认使用 `deepseek-flash`（即 DeepSeek-V4.1-Flash，2026-10 起的官方名称）。它的价格是 Pro 的三分之一，常见录音纪要的单次调用通常只有一两分钱，并非绝对零成本。**想要更好的整理质量，在 `config.json` 里把 `summary_model` 改成 `deepseek-v4-pro` 即可**——两者是独立的 model id，接口、参数、调用方式完全一样，改完不需要动任何代码。
 
 截至 2026-07-20，DeepSeek 官方人民币价格为：`deepseek-v4-flash` 缓存未命中输入 1 元 / 百万 tokens，输出 2 元 / 百万 tokens（`deepseek-v4-pro` 为 3 元 / 6 元）。价格和型号可能变化，安装与宣传时以[官方价格页](https://api-docs.deepseek.com/zh-cn/quick_start/pricing)为准。
 
@@ -22,7 +22,7 @@ AI 智能纪要是可选功能。本地转写不需要 API Key；关闭 `summary
 - [模型与价格](https://api-docs.deepseek.com/quick_start/pricing)
 - [错误码](https://api-docs.deepseek.com/quick_start/error_codes)
 
-模型名称和价格会变化。仓库当前默认使用 `deepseek-v4-flash`，升级时先核对官方文档。
+模型名称和价格会变化。仓库当前默认使用 `deepseek-flash`，升级时先核对官方文档。
 
 ## Key 存在哪里？
 
@@ -58,7 +58,7 @@ Key 仍然只写进 `.env`，不要直接写进 `config.json`。
 {
   "summary_enabled": true,
   "summary_api_base": "https://api.deepseek.com",
-  "summary_model": "deepseek-v4-flash",
+  "summary_model": "deepseek-flash",
   "summary_api_key_env": "DEEPSEEK_API_KEY"
 }
 ```
