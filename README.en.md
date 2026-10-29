@@ -91,7 +91,7 @@ python scripts/setup_check.py
 
 The output consists of two documents: AI notes include an overview, outline, todos, chapters, decisions, and quotes; the full transcript remains separate. The recommended default template works for general meetings, while optional templates cover customer conversations, interviews, podcasts, courses, training, projects, research, reviews, and dictation. See the [sample notes](examples/sample-minutes.md) and [sample transcript](examples/sample-transcript.txt).
 
-Single-speaker recordings do not show meaningless `Speaker 1` labels. Multi-speaker recordings keep numbered labels when needed.
+Single-speaker recordings do not show meaningless `Speaker 1` labels. Multi-speaker recordings keep numbered labels in the smart chapters to tell viewpoints apart.
 
 The two-document result is meant to support both fast review and careful verification, rather than forcing users to choose between a short summary and raw text.
 
